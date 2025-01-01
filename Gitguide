@@ -103,4 +103,131 @@ list stack-order of stashed file changes
 git stash pop
 write working from top of stash stack
 git stash drop
-discard the changes from top of stash stac
+discard the changes from top of stash stack
+
+Global Flags (Common Across Commands)
+
+    -h or --help: Show help for a specific Git command.
+    --version: Display the installed Git version.
+    --quiet: Suppress output.
+    --verbose: Provide detailed output.
+    --no-pager: Show output directly without a pager.
+
+Flags by Git Command
+1. git init
+
+    --bare: Create a bare repository without a working directory.
+    --template=<path>: Specify a template directory for repository initialization.
+
+2. git clone
+
+    --depth=<depth>: Perform a shallow clone with a specific history depth.
+    --branch=<name>: Clone a specific branch.
+    --single-branch: Clone only the specified branch.
+    --recurse-submodules: Clone submodules automatically.
+
+3. git add
+
+    -n or --dry-run: Show what would be added without actually adding.
+    -p or --patch: Interactively choose changes to stage.
+
+4. git commit
+
+    -m <message>: Add a commit message.
+    --amend: Modify the previous commit.
+    -a or --all: Stage all tracked changes before committing.
+    --no-edit: Skip editing the commit message when amending.
+
+5. git status
+
+    -s or --short: Show output in a compact, short format.
+    -b or --branch: Show the branch name and tracking info.
+
+6. git log
+
+    --oneline: Show each commit in a single line.
+    --graph: Display a graph of commits.
+    --stat: Show statistics for file changes.
+    -p or --patch: Show patch details of changes.
+    --since=<date> or --after=<date>: Show commits after a specific date.
+    --until=<date> or --before=<date>: Show commits before a specific date.
+    --author=<name>: Filter commits by author.
+    --grep=<text>: Search commit messages for specific text.
+
+7. git diff
+
+    --cached: Show changes staged for the next commit.
+    --stat: Show statistics for differences.
+    -w or --ignore-all-space: Ignore whitespace changes.
+
+8. git checkout
+
+    -b <branch>: Create and switch to a new branch.
+    --force: Discard local changes.
+
+9. git branch
+
+    -d <branch>: Delete a branch.
+    -D <branch>: Force-delete a branch.
+    -m <new-name>: Rename a branch.
+    -r: Show remote branches.
+
+10. git push
+
+    --force or -f: Force push changes.
+    --tags: Push all tags.
+    --set-upstream: Set the upstream branch.
+
+11. git pull
+
+    --rebase: Rebase instead of merging.
+    --no-commit: Merge without committing.
+
+12. git merge
+
+    --no-ff: Create a merge commit even when fast-forward is possible.
+    --squash: Squash commits into one.
+    --abort: Abort a conflicted merge.
+
+13. git fetch
+
+    --prune: Remove branches that no longer exist on the remote.
+    --all: Fetch all remotes.
+
+14. git reset
+
+    --soft: Reset HEAD only; leave working directory as is.
+    --mixed: Reset index and HEAD, but not working directory (default).
+    --hard: Reset index, HEAD, and working directory.
+
+15. git rebase
+
+    -i or --interactive: Interactive rebase.
+    --continue: Continue a paused rebase.
+    --abort: Abort a rebase.
+
+16. git stash
+
+    -u or --include-untracked: Include untracked files.
+    -a or --all: Include all files, including ignored ones.
+    --list: List stashed changes.
+    --pop: Apply and remove stashed changes.
+    --apply: Apply stashed changes without removing them.
+
+17. git tag
+
+    -a <tag>: Annotate a tag.
+    -d <tag>: Delete a tag.
+    -l <pattern>: List tags matching a pattern.
+
+18. git remote
+
+    -v: Show remote URLs.
+    add <name> <url>: Add a new remote.
+    remove <name>: Remove a remote.
+
+Advanced Flags
+
+    --recurse-submodules: Work with submodules (in clone, pull, etc.).
+    --squash: Squash changes in merge or cherry-pick.
+    --no-verify: Skip hooks during commit, push, etc.
