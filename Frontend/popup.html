@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeetNotion Sync</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      width: 250px;
+    }
+    h1 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    textarea, input, button {
+      width: 100%;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      padding: 5px;
+      font-size: 14px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Save Problem to Notion</h1>
+  <label for="notes">Notes:</label>
+  <textarea id="notes" placeholder="Add any notes here..." rows="3"></textarea>
+  
+  <label for="tags">Tags (comma-separated):</label>
+  <input id="tags" type="text" placeholder="e.g., arrays, dp, recursion" />
+  
+  <button id="save-button">Save to Notion</button>
+
+  <!-- Link the JavaScript file -->
+  <script src="popup.js"></script>
+</body>
+</html>
