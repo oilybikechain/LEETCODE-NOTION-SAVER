@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Store selected value
       selectedDifficulty.value = box.getAttribute("data-value");
-      console.log("Selected Difficulty:", selectedDifficulty.value);
     });
   });
 
@@ -27,7 +26,11 @@ document.addEventListener("DOMContentLoaded", () => {
       correct: document.getElementById("correct").checked,
       worthReviewing: document.getElementById("worth-reviewing").checked,
     };
-
+    console.log("Selected Difficulty:", selectedDifficulty.value);
+    console.log("Alternative Methids:", data.alternativeMethods);
+    console.log("remarks:", data.remarks);
+    console.log("correct:", data.correct);
+    console.log("worthReviewing:", data.worthReviewing);
     // Send data to the background script
     try {
       const response = await browser.runtime.sendMessage({

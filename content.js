@@ -1,3 +1,9 @@
+console.log("Content script loaded!");
+
+window.addEventListener('load', () => {
+  console.log("Page is fully loaded!");
+});
+
 async function fetchDescriptionData() {
   const currentUrl = window.location.href;
   const problemSlug = currentUrl.split('/')[4]; // Extract "two-sum" from "/problems/two-sum/"

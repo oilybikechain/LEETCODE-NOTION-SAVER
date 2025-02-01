@@ -1,7 +1,9 @@
 let problemData = null;
+console.log("Background script loaded!");
 
 // Listen for messages from the content script
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("Message received in background script:", message);
   if (message.action === 'problemData') {
     console.log('Problem Data Received:', message.data);
     problemData = message.data; // Store problem data
