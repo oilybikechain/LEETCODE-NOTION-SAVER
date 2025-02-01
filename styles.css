@@ -1,0 +1,61 @@
+body {
+  font-family: Arial, sans-serif;
+  width: 300px;
+  padding: 10px;
+}
+.difficulty-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.difficulty-box {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 0 5px;
+  font-weight: bold;
+  background-color: white;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+.difficulty-box.selected {
+  background-color: #28a745; /* Green when selected */
+  color: white;
+  border-color: #1e7e34;
+}
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+}
+textarea {
+  width: 100%;
+  margin-top: 5px;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+.checkbox-container input {
+  width: auto;
+  margin-right: 10px;
+}
+button {
+  width: 100%;
+  margin-top: 15px;
+  padding: 8px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #0056b3;
+}
