@@ -5,7 +5,7 @@ window.addEventListener('load', () => {
 });
 
 // Define an asynchronous function to fetch problem data from LeetCode
-async function fetchDescriptionData() {
+async function fetchSiteData() {
   // 🔹 Get the current page URL
   const currentUrl = window.location.href;
 
@@ -61,9 +61,11 @@ async function fetchDescriptionData() {
 
     // 🔹 Return the extracted problem data as an object
     return {
+      QuestionLink: descriptionUrl,
       title: problemTitle,
       difficulty: difficulty,
       tags: tags,
+      Solution: currentUrl,
     };
 
   } catch (error) {
@@ -73,35 +75,9 @@ async function fetchDescriptionData() {
   }
 }
 
-// Extract problem data from the current page
-async function extractProblemDataWithDescription() {
-  const description = await fetchDescriptionData();
-
-  // Extract title, difficulty, and tags
-  const titleElement = document.querySelector('[data-cy="question-title"]');
-  const difficultyElement = document.querySelector('[data-cy="question-detail-main-tabs"]');
-
-
-  const problemTitle = titleElement ? titleElement.innerText : '';
-  const difficulty = difficultyElement ? difficultyElement.innerText : '';
- 
-
-  console.log('Title:', problemTitle); // Log the title
-  console.log('Difficulty:', difficulty); // Log the difficulty
-  console.log('Tags:', tags); // Log the tags
-
-  return {
-    title: problemTitle,
-    description,
-    difficulty,
-    tags,
-    url: window.location.href,
-  };
-}
-
 // Send the extracted data to the background script
 async function sendProblemDataToBackground() {
-  const problemData = await extractProblemDataWithDescription();
+  const problemData = await fetchSiteData();
 
   browser.runtime.sendMessage({
     action: 'problemData',
