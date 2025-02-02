@@ -22,10 +22,10 @@ async function fetchDescriptionData() {
     query: `
       query questionData($titleSlug: String!) {
         question(titleSlug: $titleSlug) {
-          title   // 🔹 Get problem name (title)
-          difficulty // 🔹 Get difficulty (Easy, Medium, Hard)
+          title   
+          difficulty 
           topicTags {
-            name // 🔹 Get topic tags (e.g., "Array", "Hash Table")
+            name 
           }
         }
       }
@@ -72,75 +72,6 @@ async function fetchDescriptionData() {
     return null; // Return null if an error occurs
   }
 }
-
-
-
-//  // Open the description page in a new tab
-//  const tab = await browser.tabs.create({ url: descriptionUrl, active: false });
-//
-//  // Wait for the tab to load
-//  await new Promise((resolve) => {
-//    browser.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
-//      if (tabId === tab.id && changeInfo.status === 'complete') {
-//        browser.tabs.onUpdated.removeListener(listener);
-//        resolve();
-//      }
-//    });
-//  });
-//
-//  // Execute a content script in the new tab to extract the description
-//  const result = await browser.tabs.executeScript(tab.id, {
-//    code: `const tagElements = doc.querySelectorAll('.no-underline.hover\\:text-current.relative.inline-flex.items-center.justify-center.text-caption.px-2.py-1.gap-1.rounded-full.bg-fill-secondary.text-text-secondary');`,
-//  });
-//  const tags = Array.from(tagElements).map(tag => tag.innerText);
-//  console.log("tags: ", tags)
-//  // Close the tab
-//  await browser.tabs.remove(tab.id);
-//
-//  return tags; // Return the extracted description  
-//}
-
-
-
-//  try {
-//    const response = await fetch(descriptionUrl, {
-//      method: 'GET',
-//      headers: {
-//        'Content-Type': 'text/html',
-//      },
-//      mode: 'cors',  // Ensure it's a cross-origin request
-//      credentials: 'include',
-//      redirect: 'manual',  // Allow automatic redirects
-//    });
-//    if (response.type === 'opaqueredirect') {
-//      throw new Error("Request was redirected. Authentication may be required.");
-//    }
-//
-//
-//    console.log("Reached description page")
-//    if (!response.ok) {
-//      throw new Error(`Failed to fetch description page: ${response.status}`);
-//    }
-//
-//    const htmlText = await response.text();
-//    const parser = new DOMParser();
-//    const doc = parser.parseFromString(htmlText, 'text/html');
-//    console.log("", doc)
-//
-//    // Extract the description content ***THING TO CHANGE
-//    const tagElements = doc.querySelectorAll('.no-underline.hover\\:text-current.relative.inline-flex.items-center.justify-center.text-caption.px-2.py-1.gap-1.rounded-full.bg-fill-secondary.text-text-secondary');
-//    const tags = Array.from(tagElements).map(tag => tag.innerText);
-//    const descriptionElement = doc.querySelector('.content__u3I1'); // Adjust selector
-//    const problemDescription = descriptionElement ? descriptionElement.innerText : 'Description not found'; //FIND OUT WHAT ?MEANS
-//
-//    console.log('Description:', problemDescription); // Log the description
-//    console.log('Tags: ', tags)
-//    return problemDescription;
-//  } catch (error) {
-//    console.error('Error fetching description page:', error);
-//    return null;
-//  }
-//}
 
 // Extract problem data from the current page
 async function extractProblemDataWithDescription() {
