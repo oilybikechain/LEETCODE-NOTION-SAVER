@@ -17,7 +17,6 @@
   <div id="save-tab" class="tab-content active">
     <h2>Save Problem to Notion</h2>
 
-    <!-- 1. User Difficulty -->
     <label>Perceived difficulty:</label>
     <div class="difficulty-container">
       <div class="difficulty-box" id="Easy" data-value="Easy">Easy</div>
@@ -25,49 +24,42 @@
       <div class="difficulty-box" id="Hard" data-value="Hard">Hard</div>
     </div>
 
-    <!-- Hidden input to store selected difficulty -->
     <input type="hidden" id="selected-difficulty" value="">
 
-    <!-- 2. Alternative Methods -->
     <label for="alternative-methods">Alternative Methods:</label>
     <textarea id="alternative-methods" rows="2" placeholder="Describe alternative approaches..."></textarea>
 
-    <!-- 3. Remarks -->
     <label for="remarks">Remarks:</label>
     <textarea id="remarks" rows="2" placeholder="Any additional comments..."></textarea>
 
-    <!-- 4. Correct? (Checkbox) -->
     <div class="checkbox-container">
       <input type="checkbox" id="correct">
       <label for="correct">Solved?</label>
     </div>
 
-    <!-- 5. Worth Reviewing? (Checkbox) -->
     <div class="checkbox-container">
       <input type="checkbox" id="worth-reviewing">
       <label for="worth-reviewing">Worth Reviewing?</label>
     </div>
 
-    <!-- Save Button -->
     <button id="save-btn">Save to Notion</button>
+    <p id="status-message" class="status-message"></p> <!-- ✅ Status Message for Saving to Notion -->
+
   </div>
 
   <!-- Settings Tab -->
   <div id="settings-tab" class="tab-content">
     <h2>Settings</h2>
 
-    <!-- Notion API Key Input -->
     <label for="notion-api-key">Notion API Key:</label>
     <input type="text" id="notion-api-key" placeholder="Enter your Notion API key">
 
-    <!-- Notion Database ID Input -->
     <label for="notion-database-id">Notion Database ID:</label>
     <input type="text" id="notion-database-id" placeholder="Enter your Notion Database ID">
 
-    <!-- Save Settings Button -->
     <button id="save-settings-btn">Save Settings</button>
+    <p id="settings-status-message" class="status-message"></p> <!-- ✅ Status Message for Saving Settings -->
 
-    <!-- Display Saved Settings -->
     <div id="saved-settings">
       <h3>Saved Settings</h3>
       <p><strong>API Key:</strong> <span id="display-api-key"></span></p>

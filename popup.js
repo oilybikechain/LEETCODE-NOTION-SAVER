@@ -3,19 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectedDifficulty = document.getElementById("selected-difficulty");
   const tabButtons = document.querySelectorAll(".tab-button");
   const tabContents = document.querySelectorAll(".tab-content");
+  const statusMessage = document.getElementById("status-message");
+  const settingsStatusMessage = document.getElementById("settings-status-message"); // ✅ Added this line
 
   // Tab Switching Logic
   tabButtons.forEach(button => {
     button.addEventListener("click", () => {
       const tabName = button.getAttribute("data-tab");
 
-      // Hide all tab contents
       tabContents.forEach(content => content.classList.remove("active"));
-
-      // Show the selected tab content
       document.getElementById(tabName).classList.add("active");
 
-      // Highlight the active tab button
       tabButtons.forEach(btn => btn.classList.remove("active"));
       button.classList.add("active");
     });
@@ -24,13 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Difficulty Selection Logic
   difficultyBoxes.forEach(box => {
     box.addEventListener("click", () => {
-      // Remove "selected" class from all boxes
       difficultyBoxes.forEach(b => b.classList.remove("selected"));
-
-      // Add "selected" class to the clicked box
       box.classList.add("selected");
-
-      // Store selected value
       selectedDifficulty.value = box.getAttribute("data-value");
     });
   });
@@ -50,11 +43,33 @@ document.addEventListener("DOMContentLoaded", () => {
         action: "saveToNotion",
         data: data,
       });
+
       console.log("Response from background script:", response);
-      alert("Problem saved to Notion successfully!");
+
+      if (response.status === "success") {
+        statusMessage.textContent = "✅ Successfully saved to Notion!";
+        statusMessage.className = "status-message success";
+      } else {
+        statusMessage.textContent = `❌ Error: ${response.error}`;
+        statusMessage.className = "status-message error";
+      }
     } catch (error) {
       console.error("Error sending data to background script:", error);
-      alert("Failed to save problem to Notion.");
+      statusMessage.textContent = "❌ Failed to save problem to Notion.";
+      statusMessage.className = "status-message error";
+    }
+  });
+
+  // Listen for background script responses
+  browser.runtime.onMessage.addListener((message) => {
+    if (message.action === "notionResponse") {
+      if (message.response.status === "success") {
+        statusMessage.textContent = "✅ Successfully saved to Notion!";
+        statusMessage.className = "status-message success";
+      } else {
+        statusMessage.textContent = `❌ Error: ${message.response.error}`;
+        statusMessage.className = "status-message error";
+      }
     }
   });
 
@@ -65,11 +80,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       await browser.storage.local.set({ notionApiKey, notionDatabaseId });
-      alert("Settings saved successfully!");
+
+      // ✅ Update the settings status message instead of an alert
+      settingsStatusMessage.textContent = "✅ Settings saved successfully!";
+      settingsStatusMessage.className = "status-message success";
       displaySavedSettings();
     } catch (error) {
       console.error("Error saving settings:", error);
-      alert("Failed to save settings.");
+      settingsStatusMessage.textContent = "❌ Failed to save settings.";
+      settingsStatusMessage.className = "status-message error";
     }
   });
 

@@ -146,3 +146,17 @@ button:hover {
 #info-tab a:hover {
   text-decoration: underline;
 }
+
+.status-message {
+  margin-top: 10px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.status-message.success {
+  color: green;
+}
+
+.status-message.error {
+  color: red;
+}
