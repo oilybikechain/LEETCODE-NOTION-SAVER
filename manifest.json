@@ -1,30 +1,35 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "LeetNotion Sync",
-  "version": "1.1",
+  "version": "1.0",
   "description": "Save completed LeetCode problems to Notion.",
   "icons": {
-    "16": "icons/icon16.png",
     "48": "icons/icon48.png",
+    "96": "icons/icon96.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage", "activeTab"],
-  "host_permissions": [
+  "permissions": [
+    "activeTab",
+    "storage",
     "https://leetcode.com/*",
     "https://api.notion.com/*"
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": "icons/icon48.png"
+  "browser_action": {
+    "default_icon": {
+      "48": "icons/icon48.png",
+      "96": "icons/icon96.png"
+    },
+    "default_title": "LeetNotion Sync",
+    "default_popup": "popup.html"
   },
   "content_scripts": [
-    {
-      "matches": ["https://leetcode.com/problems/*"],
-      "js": ["content.js"],
-      "run_at": "document_end"
-    }
-  ]
+  {
+    "matches": ["https://leetcode.com/*/*/*/"],
+    "js": ["content.js"],
+    "run_at": "document_end" 
+  }
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  }
 }
