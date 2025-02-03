@@ -14,26 +14,20 @@ This tool aims to simplify your LeetCode journey by automatically creating an or
   
 ---
 
-## 2. How to Setup the API and Use the Extension
 
 ### Step 1: Install the Extension
 - Install the extension to your browser (currently supports Firefox).
-
-
-### Step 2: Add the Leetcode question tracking database to your Notion account
-- Get the template from here 
-- 
   
 ### Step 2: Obtain Notion API Key and Database ID
 - Create a **Notion Integration** by following the [Notion API Documentation](https://developers.notion.com/docs/getting-started).
-- Generate a **Notion API Key** and add the [**Database template**]() to your workspace where the problems will be saved.
+- Generate a **Notion API Key** and add the [**Database template**](https://spark-pilot-41d.notion.site/18fcc053f74480edac78df0c4bc2cf06?v=18fcc053f744815091b1000cf0d2c330&pvs=4) to your workspace where the problems will be saved.
 - Add your Notion integration into your connections by pressing the 3 dots next to the star and share icons -> connections -> name of your connection
   
 ### Step 3: Configure the Extension
 1. Open the extension by clicking on the extension icon.
 2. Navigate to the **Settings Tab** and input the following:
     - **Notion API Key**: Paste your generated Notion API key here.
-    - **Notion Database ID**: Copy the Database ID of your Notion database and paste it here.
+    - **Notion Database ID**: Copy the Database ID of your Notion database and paste it here. It is found in the url https://www.notion.so/NOTIONDATABASEID?v=
 3. Click **Save Settings** to store your Notion credentials.
 4. After saving, you will see your credentials displayed under **Saved Settings**.
 
