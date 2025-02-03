@@ -7,44 +7,85 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <body>
+  <div class="tab-container">
+    <button class="tab-button" data-tab="save-tab">Save Problem</button>
+    <button class="tab-button" data-tab="settings-tab">Settings</button>
+    <button class="tab-button" data-tab="info-tab">Information</button>
+  </div>
 
+  <!-- Save Problem Tab -->
+  <div id="save-tab" class="tab-content active">
     <h2>Save Problem to Notion</h2>
 
-     <!-- 1. User Difficulty -->
-     <label>Perceived difficulty:</label>
-     <div class="difficulty-container">
-         <div class="difficulty-box" id="Easy" data-value="Easy">Easy</div>
-         <div class="difficulty-box" id="Medium" data-value="Medium">Medium</div>
-         <div class="difficulty-box" id="Hard" data-value="Hard">Hard</div>
-     </div>
- 
-     <!-- Hidden input to store selected difficulty -->
-     <input type="hidden" id="selected-difficulty" value="">
- 
-     <!-- 2. Alternative Methods -->
-     <label for="alternative-methods">Alternative Methods:</label>
-     <textarea id="alternative-methods" rows="2" placeholder="Describe alternative approaches..."></textarea>
- 
-     <!-- 3. Remarks -->
-     <label for="remarks">Remarks:</label>
-     <textarea id="remarks" rows="2" placeholder="Any additional comments..."></textarea>
- 
-     <!-- 4. Correct? (Checkbox) -->
-     <div class="checkbox-container">
-         <input type="checkbox" id="correct">
-         <label for="correct">Solved?</label>
-     </div>
- 
-     <!-- 5. Worth Reviewing? (Checkbox) -->
-     <div class="checkbox-container">
-         <input type="checkbox" id="worth-reviewing">
-         <label for="worth-reviewing">Worth Reviewing?</label>
-     </div>
- 
-     <!-- Save Button -->
-     <button id="save-btn">Save to Notion</button>
- 
-     <script src="popup.js"></script>
+    <!-- 1. User Difficulty -->
+    <label>Perceived difficulty:</label>
+    <div class="difficulty-container">
+      <div class="difficulty-box" id="Easy" data-value="Easy">Easy</div>
+      <div class="difficulty-box" id="Medium" data-value="Medium">Medium</div>
+      <div class="difficulty-box" id="Hard" data-value="Hard">Hard</div>
+    </div>
+
+    <!-- Hidden input to store selected difficulty -->
+    <input type="hidden" id="selected-difficulty" value="">
+
+    <!-- 2. Alternative Methods -->
+    <label for="alternative-methods">Alternative Methods:</label>
+    <textarea id="alternative-methods" rows="2" placeholder="Describe alternative approaches..."></textarea>
+
+    <!-- 3. Remarks -->
+    <label for="remarks">Remarks:</label>
+    <textarea id="remarks" rows="2" placeholder="Any additional comments..."></textarea>
+
+    <!-- 4. Correct? (Checkbox) -->
+    <div class="checkbox-container">
+      <input type="checkbox" id="correct">
+      <label for="correct">Solved?</label>
+    </div>
+
+    <!-- 5. Worth Reviewing? (Checkbox) -->
+    <div class="checkbox-container">
+      <input type="checkbox" id="worth-reviewing">
+      <label for="worth-reviewing">Worth Reviewing?</label>
+    </div>
+
+    <!-- Save Button -->
+    <button id="save-btn">Save to Notion</button>
+  </div>
+
+  <!-- Settings Tab -->
+  <div id="settings-tab" class="tab-content">
+    <h2>Settings</h2>
+
+    <!-- Notion API Key Input -->
+    <label for="notion-api-key">Notion API Key:</label>
+    <input type="text" id="notion-api-key" placeholder="Enter your Notion API key">
+
+    <!-- Notion Database ID Input -->
+    <label for="notion-database-id">Notion Database ID:</label>
+    <input type="text" id="notion-database-id" placeholder="Enter your Notion Database ID">
+
+    <!-- Save Settings Button -->
+    <button id="save-settings-btn">Save Settings</button>
+
+    <!-- Display Saved Settings -->
+    <div id="saved-settings">
+      <h3>Saved Settings</h3>
+      <p><strong>API Key:</strong> <span id="display-api-key"></span></p>
+      <p><strong>Database ID:</strong> <span id="display-database-id"></span></p>
+    </div>
+  </div>
+
+  <!-- Information Tab -->
+  <div id="info-tab" class="tab-content">
+    <h2>Information</h2>
+    <p>Welcome to LeetNotion Sync! Here are some useful links:</p>
+    <ul>
+      <li><a href="https://developers.notion.com/" target="_blank">Notion API Documentation</a></li>
+      <li><a href="https://leetcode.com/" target="_blank">LeetCode</a></li>
+      <li><a href="https://github.com/your-repo" target="_blank">GitHub Repository</a></li>
+    </ul>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>

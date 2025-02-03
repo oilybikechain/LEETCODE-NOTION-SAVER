@@ -19,58 +19,55 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ status: 'error', error: "No problem data available. Try refreshing the page." });
       return true;
     }
-
+    
     // Format the data correctly
     const formattedData = {
-      Done: message.data.correct ? "Yes" : "No",
+      Done: message.data.correct ? true : false,  // Checkbox requires boolean
+      "Question": problemData["Question"] || "Untitled",
       "Question link": problemData["QuestionLink"] || "",
-      Tag: problemData.tags ? problemData.tags.join(", ") : "N/A",
-      Level: problemData.difficulty || "Unknown",
+      "Tag": Array.isArray(problemData.tags) ? problemData.tags : [], // Ensure array format
+      "Level": problemData.difficulty || "Unknown",
       "My expertise": message.data.difficulty || "", 
       "Alternative methods": message.data.alternativeMethods || "",
-      Remarks: message.data.remarks || "",
+      "Remarks": message.data.remarks || "",
       "Solution link": problemData.Solution || "",
-      "Worth reviewing?": message.data.worthReviewing ? "Yes" : "No",
-      Date: new Date().toISOString().split('T')[0], // Ensure date is included
+      "Worth reviewing?": message.data.worthReviewing ? true : false,  // Checkbox requires boolean
     };
 
     console.log("Formatted Data to Save:", formattedData);
 
-    // Send data to Notion
-    createNotionPage(formattedData)
-      .then(response => {
-        console.log('Notion page created:', response);
-        sendResponse({ status: 'success' });
-      })
-      .catch(error => {
-        console.error('Error creating Notion page:', error);
-        sendResponse({ status: 'error', error: error.message });
-      });
-
-    return true; // Keep the message channel open for sendResponse
+    addEntryToNotionDatabase(formattedData)
+     .then(response => console.log(response))
+     .catch(error => console.error(error));
   }
 });
 
-// Function to create a Notion page
-async function updateNotionDatabase(data, pageId) {
-  const notionApiKey = 'your_notion_integration_key';
+async function addEntryToNotionDatabase(data) {
+  const notionApiKey = ''; // Replace with your actual key
+  const databaseId = ''; // Your database ID
 
-  const response = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
-    method: 'PATCH',
+  const response = await fetch("https://api.notion.com/v1/pages", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${notionApiKey}`,
-      'Content-Type': 'application/json',
-      'Notion-Version': '2022-06-28',
+      "Authorization": `Bearer ${notionApiKey}`,
+      "Content-Type": "application/json",
+      "Notion-Version": "2022-06-28",
     },
+
     body: JSON.stringify({
+      parent: {
+        "type":"database_id",
+        database_id: databaseId },
       properties: {
-        'Difficulty': { select: { name: data.Level } },
-        'Tags': { multi_select: data.Tag.split(", ").map(tag => ({ name: tag })) },
-        'Alternative Methods': { rich_text: [{ text: { content: data["Alternative methods"] } }] },
-        'Remarks': { rich_text: [{ text: { content: data.Remarks } }] },
-        'Correct?': { checkbox: data.Done === "Yes" },
-        'Worth Reviewing?': { checkbox: data["Worth reviewing?"] === "Yes" },
-        'Date': { date: { start: data.Date } },
+        "Question": { title: [{ text: { content: data["Question link"] } }] },
+        "Done": { checkbox: data.Done === "Yes" },
+        "Tag": { multi_select: data.Tag.map(tag => ({ name: tag })) },
+        "Level": { select: { name: data.Level } },
+        "My Expertise": { select: { name: data["My expertise"] } },
+        "Alternative Method": { multi_select: data["Alternative methods"].split(", ").map(method => ({ name: method })) },
+        "Remarks": { rich_text: [{ text: { content: data.Remarks } }] },
+        "My Solution Link": { url: data["Solution link"] },
+        "Worth reviewing?": { checkbox: data["Worth reviewing?"] === "Yes" },
       },
     }),
   });
@@ -81,10 +78,7 @@ async function updateNotionDatabase(data, pageId) {
     return { status: "error", error: error.message };
   }
 
-  console.log("Successfully updated Notion table!");
+  console.log("✅ Successfully added entry to Notion database!");
   return { status: "success" };
 }
 
-updateNotionDatabase(problemData, pageId)
-  .then(response => console.log(response))
-  .catch(error => console.error(error));
