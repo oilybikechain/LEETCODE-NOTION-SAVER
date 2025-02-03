@@ -62,7 +62,7 @@ async function fetchSiteData() {
     // 🔹 Return the extracted problem data as an object
     return {
       QuestionLink: descriptionUrl,
-      title: problemTitle,
+      Question: problemTitle,
       difficulty: difficulty,
       tags: tags,
       Solution: currentUrl,
