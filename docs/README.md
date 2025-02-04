@@ -2,9 +2,13 @@
 
 ## 1. What the Extension Does
 
-**LeetNotion Sync** is a browser extension that allows you to easily save your completed LeetCode problems to a Notion database template provided. It integrates with your Notion workspace, enabling you to store problem details such as difficulty, alternative solutions, remarks, and whether the problem is worth reviewing. 
+**LeetNotion Sync** is a browser extension that allows you to easily save your completed LeetCode problems to a [Notion database template](https://spark-pilot-41d.notion.site/18fcc053f74480edac78df0c4bc2cf06?v=18fcc053f744815091b1000cf0d2c330&pvs=4). It integrates with your Notion workspace, enabling you to store problem details such as difficulty, alternative solutions, remarks, and whether the problem is worth reviewing. 
 
-This tool aims to simplify your LeetCode journey by automatically creating an organized log of all your solved problems, offering you a quick and easy way to track your progress, solutions, and areas that need further review.
+This tool aims to simplify your LeetCode journey by automatically creating an organized log of all your solved problems via an extension, offering you a quick and easy way to track your progress without needing to manually open the notion page.
+
+![database image](docs/images/template.png)
+
+![interface](docs/images/interface.png)
 
 ### Key Features:
 - **Save completed LeetCode problems** to a Notion database.
@@ -25,15 +29,15 @@ This tool aims to simplify your LeetCode journey by automatically creating an or
    - click load temporary add on and select the manifest.json file
   
 ### Step 2: Obtain Notion API Key and Database ID
-- Create a **Notion Integration** by following the [Notion API Documentation](https://developers.notion.com/docs/getting-started) or going to your profiles [integrations page](https://www.notion.so/profile/integrations), clicking new integration, inputting the correct associated workspace, type as internal and saving. You do not need to change any of the settings, just copy the secret api code.
-- Generate a **Notion API Key** and add the [**Database template**](https://spark-pilot-41d.notion.site/18fcc053f74480edac78df0c4bc2cf06?v=18fcc053f744815091b1000cf0d2c330&pvs=4) to your workspace where the problems will be saved.
-- Add your Notion integration into your connections by pressing the 3 dots next to the star and share icons -> connections -> name of your connection
+- Create a **Notion Integration** by going to your profiles [integrations page](https://www.notion.so/profile/integrations), clicking new integration, inputting the correct associated workspace, inputting type as internal and saving. You do not need to change any of the settings, just copy the **Notion API Key**.
+- Add the [**Database template**](https://spark-pilot-41d.notion.site/18fcc053f74480edac78df0c4bc2cf06?v=18fcc053f744815091b1000cf0d2c330&pvs=4) to your workspace where the problems will be saved.
+- Ensure you are viewing your notion database, not the page, and add your Notion integration to your database by pressing the 3 dots next to the star and share icons -> connections -> name of your connection.
   
 ### Step 3: Configure the Extension
 1. Open the extension by clicking on the extension icon.
 2. Navigate to the **Settings Tab** and input the following:
     - **Notion API Key**: Paste your generated Notion API key here.
-    - **Notion Database ID**: Copy the Database ID of your Notion database and paste it here. It is found in the url https://www.notion.so/NOTIONDATABASEID?v=
+    - **Notion Database ID**: Copy the Database ID of your Notion database and paste it here. It is found in this section of the url https://www.notion.so/{NOTIONDATABASEID}?v=
 3. Click **Save Settings** to store your Notion credentials.
 4. After saving, you will see your credentials displayed under **Saved Settings**.
 
@@ -42,13 +46,13 @@ This tool aims to simplify your LeetCode journey by automatically creating an or
 2. Open the extension and go to the **Save Problem** tab.
 3. Enter the following details:
     - **Perceived difficulty**: Select the difficulty level of the problem (Easy, Medium, Hard).
-    - **Alternative methods**: Describe any alternative methods you used.
+    - **Alternative methods**: Describe any alternative methods you could have used.
     - **Remarks**: Add any additional comments.
     - **Solved?**: Check if you completed the problem.
     - **Worth Reviewing?**: Check if you want to revisit the problem.
 4. Click **Save to Notion** to log the problem in your Notion database.
-5. Wait a while until successfully saved to notion appears
-6. Sometimes you may need to refresh the page
+5. Wait until successfully saved to notion appears
+    - Sometimes you may need to refresh the page
 
 ---
 
@@ -87,7 +91,7 @@ The background script has built-in error handling and retry logic for handling p
 
 ### Settings Management
 
-The extension saves your **Notion API Key** and **Database ID** securely in the browser’s local storage. This ensures you don’t have to input your credentials every time you use the extension. Additionally, saved settings are displayed in the **Settings Tab** so you can always review or update them.
+The extension saves your **Notion API Key** and **Database ID** securely in the browser’s local storage. This ensures you don’t have to input your credentials every time you use the extension. Additionally, saved settings are displayed in the **Settings Tab** so you can always review or update them. 
 
 ---
 
