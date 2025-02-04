@@ -16,10 +16,16 @@ This tool aims to simplify your LeetCode journey by automatically creating an or
 
 
 ### Step 1: Install the Extension
-- Install the extension to your browser (currently supports Firefox).
+- Install the extension to your browser (use firefox manifest v3 for firefox).
+- For chrome download the whole download for chrome folder
+   - Go to chrome://extensions/ in your browser
+   - under my extensions click load unpacked and select the downloaded folder
+- For firefox download the whole download for firefox manifest v3 folder
+   - Go to about:debugging#/runtime/this-firefox
+   - click load temporary add on and select the manifest.json file
   
 ### Step 2: Obtain Notion API Key and Database ID
-- Create a **Notion Integration** by following the [Notion API Documentation](https://developers.notion.com/docs/getting-started).
+- Create a **Notion Integration** by following the [Notion API Documentation](https://developers.notion.com/docs/getting-started) or going to your profiles [integrations page](https://www.notion.so/profile/integrations), clicking new integration, inputting the correct associated workspace, type as internal and saving. You do not need to change any of the settings, just copy the secret api code.
 - Generate a **Notion API Key** and add the [**Database template**](https://spark-pilot-41d.notion.site/18fcc053f74480edac78df0c4bc2cf06?v=18fcc053f744815091b1000cf0d2c330&pvs=4) to your workspace where the problems will be saved.
 - Add your Notion integration into your connections by pressing the 3 dots next to the star and share icons -> connections -> name of your connection
   
@@ -32,7 +38,7 @@ This tool aims to simplify your LeetCode journey by automatically creating an or
 4. After saving, you will see your credentials displayed under **Saved Settings**.
 
 ### Step 4: Save LeetCode Problems
-1. Navigate to a completed LeetCode problem page.
+1. Navigate to a completed LeetCode problem page, ensure that you are currently viewing your inputted submission e.g. your url is https://leetcode.com/problems/{problem name}/submissions/{submission code}/ 
 2. Open the extension and go to the **Save Problem** tab.
 3. Enter the following details:
     - **Perceived difficulty**: Select the difficulty level of the problem (Easy, Medium, Hard).
@@ -41,6 +47,8 @@ This tool aims to simplify your LeetCode journey by automatically creating an or
     - **Solved?**: Check if you completed the problem.
     - **Worth Reviewing?**: Check if you want to revisit the problem.
 4. Click **Save to Notion** to log the problem in your Notion database.
+5. Wait a while until successfully saved to notion appears
+6. Sometimes you may need to refresh the page
 
 ---
 

@@ -133,8 +133,16 @@ button:hover {
 }
 
 #saved-settings p {
+  word-wrap: break-word; /* Break long words if necessary */
+  overflow-wrap: break-word; /* Ensure long words wrap */
+  white-space: normal; /* Allow text to wrap to the next line */
   margin: 5px 0;
   color: white; /* White text */
+}
+
+#saved-settings span {
+  display: inline-block; /* Ensure the span behaves like a block element */
+  max-width: 100%; /* Ensure it doesn't exceed the container width */
 }
 
 /* Links in Information Tab */
