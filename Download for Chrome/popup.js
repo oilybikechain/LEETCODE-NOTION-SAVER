@@ -66,10 +66,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const notionDatabaseId = document.getElementById("notion-database-id").value;
 
     try {
-      await chrome.storage.local.set({ notionApiKey, notionDatabaseId }); // Use chrome.storage
+      // Retrieve existing settings
+      const { notionApiKey: existingApiKey, notionDatabaseId: existingDatabaseId } = await chrome.storage.local.get(["notionApiKey", "notionDatabaseId"]);
 
+      // Only update if the new value is not empty
+      const updatedApiKey = notionApiKey || existingApiKey;
+      const updatedDatabaseId = notionDatabaseId || existingDatabaseId;
+    
+      // Save the updated settings
+      await chrome.storage.local.set({
+        notionApiKey: updatedApiKey,
+        notionDatabaseId: updatedDatabaseId,
+      });
+
+      // Update the settings status message
       settingsStatusMessage.textContent = "✅ Settings saved successfully!";
       settingsStatusMessage.className = "status-message success";
+
+      // Display the updated settings
       displaySavedSettings();
     } catch (error) {
       console.error("Error saving settings:", error);

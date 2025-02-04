@@ -73,17 +73,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Save Settings Button Logic
-  document.getElementById("save-settings-btn").addEventListener("click", async () => {
-    const notionApiKey = document.getElementById("notion-api-key").value;
-    const notionDatabaseId = document.getElementById("notion-database-id").value;
+   // Save Settings Button Logic
+   document.getElementById("save-settings-btn").addEventListener("click", async () => {
+    const notionApiKey = document.getElementById("notion-api-key").value.trim();
+    const notionDatabaseId = document.getElementById("notion-database-id").value.trim();
 
     try {
-      await browser.storage.local.set({ notionApiKey, notionDatabaseId });
+      // Retrieve existing settings
+      const { notionApiKey: existingApiKey, notionDatabaseId: existingDatabaseId } = await browser.storage.local.get(["notionApiKey", "notionDatabaseId"]);
 
-      // ✅ Update the settings status message instead of an alert
+      // Only update if the new value is not empty
+      const updatedApiKey = notionApiKey || existingApiKey;
+      const updatedDatabaseId = notionDatabaseId || existingDatabaseId;
+
+      // Save the updated settings
+      await browser.storage.local.set({
+        notionApiKey: updatedApiKey,
+        notionDatabaseId: updatedDatabaseId,
+      });
+
+      // Update the settings status message
       settingsStatusMessage.textContent = "✅ Settings saved successfully!";
       settingsStatusMessage.className = "status-message success";
+
+      // Display the updated settings
       displaySavedSettings();
     } catch (error) {
       console.error("Error saving settings:", error);
