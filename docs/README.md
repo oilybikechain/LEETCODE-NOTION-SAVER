@@ -6,9 +6,9 @@
 
 This tool aims to simplify your LeetCode journey by automatically creating an organized log of all your solved problems via an extension, offering you a quick and easy way to track your progress without needing to manually open the notion page.
 
-![database image](docs/images/template.png)
+![database image](images/template.png)
 
-![interface](docs/images/interface.png)
+![interface](images/interface.png)
 
 ### Key Features:
 - **Save completed LeetCode problems** to a Notion database.
