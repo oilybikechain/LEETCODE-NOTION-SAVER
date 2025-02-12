@@ -31,5 +31,10 @@
   ],
   "background": {
     "scripts": ["background.js"]
+  },
+  "applications": {
+    "gecko": {
+      "id": "leetnotion-sync@yourdomain.com"
+    }
   }
 }
