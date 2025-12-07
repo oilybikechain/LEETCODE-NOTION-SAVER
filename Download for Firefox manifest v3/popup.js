@@ -1,234 +1,219 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // --- ELEMENTS ---
-  const difficultyBoxes = document.querySelectorAll(".difficulty-box");
-  const selectedDifficulty = document.getElementById("selected-difficulty");
-  const tabButtons = document.querySelectorAll(".tab-button");
-  const tabContents = document.querySelectorAll(".tab-content");
-  const statusMessage = document.getElementById("status-message");
+  // --- UI Elements ---
+  const mainView = document.getElementById("main-view");
+  const settingsView = document.getElementById("settings-view");
+  const settingsToggle = document.getElementById("settings-toggle");
   
-  const languageSelect = document.getElementById("language-select");
+  // Icons
+  const iconGear = document.getElementById("icon-gear");
+  const iconHome = document.getElementById("icon-home");
+
   const themeToggle = document.getElementById("theme-toggle");
+  const retryBtn = document.getElementById("retry-btn");
   
-  const profileSelect = document.getElementById("profile-select");
-  const profileNameInput = document.getElementById("profile-name");
+  const displayTitle = document.getElementById("display-title");
+  const displayDifficulty = document.getElementById("display-difficulty");
+  const displayTags = document.getElementById("display-tags");
+  const problemCard = document.getElementById("problem-card");
+
+  const difficultyDots = document.querySelectorAll(".dot");
+  const selectedDifficulty = document.getElementById("selected-difficulty");
+  const languageSelect = document.getElementById("language-select");
+  const approachInput = document.getElementById("alternative-methods");
+  const remarksInput = document.getElementById("remarks");
+  const saveBtn = document.getElementById("save-btn");
+  const statusMessage = document.getElementById("status-message");
+
+  // Settings Elements
   const apiKeyInput = document.getElementById("notion-api-key");
   const dbIdInput = document.getElementById("notion-database-id");
-  const saveProfileBtn = document.getElementById("save-profile-btn");
-  const deleteProfileBtn = document.getElementById("delete-profile-btn");
-  const settingsStatusMessage = document.getElementById("settings-status-message");
+  const saveKeyBtn = document.getElementById("save-key-btn"); // New Button
+  const saveDbBtn = document.getElementById("save-db-btn");   // New Button
+  const settingsStatusMsg = document.getElementById("settings-status-message");
+  const autoDetectCheckbox = document.getElementById("auto-detect");
 
-  // ===========================================
-  // 1. THEME HANDLING (New)
-  // ===========================================
-  async function initTheme() {
-    const { theme } = await browser.storage.local.get("theme");
-    // Default to dark if not set
-    if (theme === "light") {
-      document.body.classList.add("light-theme");
-    }
-  }
+  // ===============================================
+  // 1. INIT SETTINGS
+  // ===============================================
   
+  const { theme, autoDetect, notionApiKey, notionDatabaseId } = await browser.storage.local.get([
+    "theme", "autoDetect", "notionApiKey", "notionDatabaseId"
+  ]);
+  
+  if (theme === "light") document.body.classList.add("light-theme");
+  
+  if (notionApiKey) apiKeyInput.value = notionApiKey;
+  if (notionDatabaseId) dbIdInput.value = notionDatabaseId;
+  autoDetectCheckbox.checked = (autoDetect !== false); 
+
   themeToggle.addEventListener("click", async () => {
     document.body.classList.toggle("light-theme");
     const isLight = document.body.classList.contains("light-theme");
     await browser.storage.local.set({ theme: isLight ? "light" : "dark" });
   });
 
-  initTheme(); // Run on start
-
-  // ===========================================
-  // 2. TAB SWITCHING
-  // ===========================================
-  tabButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      const tabName = button.getAttribute("data-tab");
-      tabContents.forEach(content => content.classList.remove("active"));
-      document.getElementById(tabName).classList.add("active");
-      tabButtons.forEach(btn => btn.classList.remove("active"));
-      button.classList.add("active");
-    });
+  autoDetectCheckbox.addEventListener("change", async () => {
+      await browser.storage.local.set({ autoDetect: autoDetectCheckbox.checked });
   });
 
-  // ===========================================
-  // 3. DIFFICULTY & LANGUAGE
-  // ===========================================
-  difficultyBoxes.forEach(box => {
-    box.addEventListener("click", () => {
-      difficultyBoxes.forEach(b => b.classList.remove("selected"));
-      box.classList.add("selected");
-      selectedDifficulty.value = box.getAttribute("data-value");
-    });
-  });
-
-  // Load last used language
-  const { lastUsedLanguage } = await browser.storage.local.get("lastUsedLanguage");
-  if (lastUsedLanguage) languageSelect.value = lastUsedLanguage;
-
-  // Listen for auto-detected language
-  browser.runtime.onMessage.addListener((message) => {
-      if (message.action === "problemData" && message.data.detectedLanguage) {
-           const options = Array.from(languageSelect.options).map(o => o.value);
-           if (options.includes(message.data.detectedLanguage)) {
-             languageSelect.value = message.data.detectedLanguage;
-           }
-      }
-  });
-
-  // ===========================================
-  // 4. MANUAL REFRESH
-  // ===========================================
-  document.getElementById("refresh-data-btn").addEventListener("click", async () => {
-      statusMessage.textContent = "⏳ Fetching...";
-      statusMessage.className = "status-message";
-      try {
-          const tabs = await browser.tabs.query({active: true, currentWindow: true});
-          if (tabs.length === 0) throw new Error("No active tab");
-          await browser.tabs.sendMessage(tabs[0].id, {action: "manualFetch"});
-          statusMessage.textContent = "✅ Data refreshed!";
-          statusMessage.className = "status-message success";
-          setTimeout(() => { statusMessage.textContent = ""; }, 2000);
-      } catch (error) {
-          statusMessage.textContent = "❌ Connection failed.";
-          statusMessage.className = "status-message error";
-      }
-  });
-
-  // ===========================================
-  // 5. PROFILE MANAGEMENT
-  // ===========================================
-  async function loadProfiles() {
-    const { notionProfiles, activeProfileId } = await browser.storage.local.get(["notionProfiles", "activeProfileId"]);
-    let profiles = notionProfiles || {};
-    let activeId = activeProfileId || "default";
-
-    profileSelect.innerHTML = "";
-
-    if (Object.keys(profiles).length === 0) {
-        profiles = { "default": { name: "Default", apiKey: "", databaseId: "" } };
-        activeId = "default";
-        await browser.storage.local.set({ notionProfiles: profiles, activeProfileId: activeId });
-    }
-
-    for (const [id, profile] of Object.entries(profiles)) {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = profile.name;
-        profileSelect.appendChild(option);
-    }
-
-    if (profiles[activeId]) {
-        profileSelect.value = activeId;
-        fillInputs(profiles[activeId]);
+  // ===============================================
+  // 2. VIEW NAVIGATION (Gear <-> Home Toggle)
+  // ===============================================
+  
+  function toggleView() {
+    if (settingsView.classList.contains("hidden")) {
+        // Go to Settings
+        mainView.classList.add("hidden");
+        settingsView.classList.remove("hidden");
+        // Swap Icon to Home
+        iconGear.classList.add("hidden");
+        iconHome.classList.remove("hidden");
     } else {
-        const firstId = Object.keys(profiles)[0];
-        profileSelect.value = firstId;
-        fillInputs(profiles[firstId]);
-        await browser.storage.local.set({ activeProfileId: firstId });
+        // Go to Main
+        settingsView.classList.add("hidden");
+        mainView.classList.remove("hidden");
+        // Swap Icon to Gear
+        iconHome.classList.add("hidden");
+        iconGear.classList.remove("hidden");
     }
   }
 
-  function fillInputs(profile) {
-      profileNameInput.value = profile.name;
-      apiKeyInput.value = profile.apiKey;
-      dbIdInput.value = profile.databaseId;
-  }
+  settingsToggle.addEventListener("click", toggleView);
 
-  profileSelect.addEventListener("change", async () => {
-      const selectedId = profileSelect.value;
-      const { notionProfiles } = await browser.storage.local.get("notionProfiles");
-      if (notionProfiles && notionProfiles[selectedId]) {
-          fillInputs(notionProfiles[selectedId]);
-          await browser.storage.local.set({ activeProfileId: selectedId });
-      }
-  });
-
-  saveProfileBtn.addEventListener("click", async () => {
-      const name = profileNameInput.value.trim();
-      const apiKey = apiKeyInput.value.trim();
-      const dbId = dbIdInput.value.trim();
-
-      if (!name) return;
-
-      const { notionProfiles } = await browser.storage.local.get(["notionProfiles"]);
-      let profiles = notionProfiles || {};
-      const currentId = profileSelect.value;
-      
-      let targetId = currentId;
-      if (profiles[currentId].name !== name) {
-          const newId = Date.now().toString(); 
-          profiles[newId] = { name, apiKey, databaseId: dbId };
-          targetId = newId;
-      } else {
-          profiles[currentId].apiKey = apiKey;
-          profiles[currentId].databaseId = dbId;
-      }
-
-      await browser.storage.local.set({ notionProfiles: profiles, activeProfileId: targetId });
-      settingsStatusMessage.textContent = "✅ Saved!";
-      settingsStatusMessage.className = "status-message success";
-      setTimeout(() => { settingsStatusMessage.textContent = ""; }, 2000);
-      loadProfiles(); 
-  });
-
-  deleteProfileBtn.addEventListener("click", async () => {
-      const { notionProfiles } = await browser.storage.local.get("notionProfiles");
-      const currentId = profileSelect.value;
-
-      if (Object.keys(notionProfiles).length <= 1) {
-          settingsStatusMessage.textContent = "Cannot delete last profile.";
-          settingsStatusMessage.className = "status-message error";
-          return;
-      }
-
-      delete notionProfiles[currentId];
-      const nextId = Object.keys(notionProfiles)[0];
-      await browser.storage.local.set({ notionProfiles: notionProfiles, activeProfileId: nextId });
-      loadProfiles();
-  });
-
-  loadProfiles();
-
-  // ===========================================
-  // 6. SAVE PROBLEM
-  // ===========================================
-  document.getElementById("save-btn").addEventListener("click", async () => {
-    const selectedLang = languageSelect.value;
-    if (selectedLang) await browser.storage.local.set({ lastUsedLanguage: selectedLang });
-
-    const data = {
-      difficulty: selectedDifficulty.value,
-      language: selectedLang, 
-      alternativeMethods: document.getElementById("alternative-methods").value,
-      remarks: document.getElementById("remarks").value,
-      correct: document.getElementById("correct").checked,
-      worthReviewing: document.getElementById("worth-reviewing").checked,
-    };
+  // ===============================================
+  // 3. DATA FETCHING
+  // ===============================================
+  
+  async function fetchData() {
+    displayTitle.textContent = "Fetching data...";
+    problemCard.classList.remove("hidden");
+    statusMessage.textContent = "";
+    retryBtn.classList.add("hidden");
 
     try {
-      const response = await browser.runtime.sendMessage({ action: "saveToNotion", data: data });
-
-      if (response && response.status === "success") {
-        statusMessage.textContent = "✅ Saved!";
-        statusMessage.className = "status-message success";
-      } else {
-        statusMessage.textContent = `❌ ${response ? response.error : "Error"}`;
-        statusMessage.className = "status-message error";
-      }
-    } catch (error) {
-      statusMessage.textContent = "❌ Failed.";
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      if (tabs.length === 0) throw new Error("No active tab");
+      await browser.tabs.sendMessage(tabs[0].id, { action: "manualFetch" });
+    } catch (e) {
+      console.log(e);
+      displayTitle.textContent = "No Problem Found";
+      displayDifficulty.textContent = "N/A";
+      statusMessage.textContent = "Navigate to a LeetCode problem.";
       statusMessage.className = "status-message error";
+      retryBtn.classList.remove("hidden");
+    }
+  }
+
+  fetchData();
+  retryBtn.addEventListener("click", fetchData);
+
+  browser.runtime.onMessage.addListener((message) => {
+    if (message.action === "problemData" && message.data) {
+      const data = message.data;
+      displayTitle.textContent = data.Question || "Unknown";
+      displayTitle.title = data.Question;
+      displayDifficulty.textContent = data.difficulty || "-";
+      displayDifficulty.className = `badge ${data.difficulty}`;
+      
+      displayTags.innerHTML = "";
+      if (data.tags && Array.isArray(data.tags)) {
+        data.tags.slice(0, 4).forEach(tag => {
+          const span = document.createElement("span");
+          span.className = "tag-chip";
+          span.textContent = tag;
+          displayTags.appendChild(span);
+        });
+      }
+
+      if (data.detectedLanguage) {
+         browser.storage.local.get("lastUsedLanguage").then(({ lastUsedLanguage }) => {
+             const opts = Array.from(languageSelect.options).map(o => o.value.toLowerCase());
+             if (opts.includes(data.detectedLanguage.toLowerCase())) {
+                 languageSelect.value = data.detectedLanguage;
+             } else if (lastUsedLanguage) {
+                 languageSelect.value = lastUsedLanguage;
+             }
+         });
+      }
     }
   });
 
-  browser.runtime.onMessage.addListener((message) => {
-    if (message.action === "notionResponse") {
-      if (message.response.status === "success") {
-        statusMessage.textContent = "✅ Saved!";
-        statusMessage.className = "status-message success";
-      } else {
-        statusMessage.textContent = `❌ ${message.response.error}`;
-        statusMessage.className = "status-message error";
-      }
+  // ===============================================
+  // 4. MAIN ACTIONS
+  // ===============================================
+
+  difficultyDots.forEach(dot => {
+    dot.addEventListener("click", () => {
+      difficultyDots.forEach(d => d.classList.remove("selected"));
+      dot.classList.add("selected");
+      selectedDifficulty.value = dot.getAttribute("data-value");
+    });
+  });
+
+  saveBtn.addEventListener("click", async () => {
+    saveBtn.textContent = "Saving...";
+    saveBtn.disabled = true;
+
+    if (languageSelect.value) {
+        await browser.storage.local.set({ lastUsedLanguage: languageSelect.value });
     }
+
+    const payload = {
+      difficulty: selectedDifficulty.value,
+      language: languageSelect.value,
+      alternativeMethods: approachInput.value,
+      remarks: remarksInput.value,
+      correct: document.getElementById("correct").checked,
+      worthReviewing: document.getElementById("worth-reviewing").checked
+    };
+
+    browser.runtime.sendMessage({ action: "saveToNotion", data: payload })
+      .then(response => {
+        saveBtn.disabled = false;
+        if (response.status === "success") {
+          saveBtn.textContent = "Saved!";
+          statusMessage.textContent = "✅ Saved to Notion.";
+          statusMessage.className = "status-message success";
+          setTimeout(() => { saveBtn.textContent = "Save to Notion"; }, 2000);
+        } else {
+          saveBtn.textContent = "Save to Notion";
+          statusMessage.textContent = `❌ ${response.error}`;
+          statusMessage.className = "status-message error";
+        }
+      });
+  });
+
+  // ===============================================
+  // 5. INDEPENDENT CREDENTIAL SAVING
+  // ===============================================
+
+  // Save API Key
+  saveKeyBtn.addEventListener("click", async () => {
+      const key = apiKeyInput.value.trim();
+      if (!key) {
+        settingsStatusMsg.textContent = "❌ API Key is empty.";
+        settingsStatusMsg.className = "status-message error";
+        return;
+      }
+
+      await browser.storage.local.set({ notionApiKey: key });
+      settingsStatusMsg.textContent = "✅ API Key Saved!";
+      settingsStatusMsg.className = "status-message success";
+      setTimeout(() => settingsStatusMsg.textContent = "", 2000);
+  });
+
+  // Save Database ID
+  saveDbBtn.addEventListener("click", async () => {
+      const db = dbIdInput.value.trim();
+      if (!db) {
+        settingsStatusMsg.textContent = "❌ Database ID is empty.";
+        settingsStatusMsg.className = "status-message error";
+        return;
+      }
+
+      await browser.storage.local.set({ notionDatabaseId: db });
+      settingsStatusMsg.textContent = "✅ Database ID Saved!";
+      settingsStatusMsg.className = "status-message success";
+      setTimeout(() => settingsStatusMsg.textContent = "", 2000);
   });
 });
