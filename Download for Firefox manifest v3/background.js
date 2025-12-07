@@ -1,37 +1,41 @@
 let problemData = null;
 
-// Function to get stored Notion API key and database ID
+// Function to get stored Notion API key and database ID from the ACTIVE profile
 async function getNotionCredentials() {
-  const { notionApiKey, notionDatabaseId } = await browser.storage.local.get(["notionApiKey", "notionDatabaseId"]);
-  if (!notionApiKey || !notionDatabaseId) {
-    console.error("Notion API key or Database ID not found. Please set them in the extension settings.");
+  const { notionProfiles, activeProfileId } = await browser.storage.local.get(["notionProfiles", "activeProfileId"]);
+  
+  if (!notionProfiles || !activeProfileId || !notionProfiles[activeProfileId]) {
+    console.error("No active profile found.");
     return null;
   }
-  return { notionApiKey, notionDatabaseId };
+
+  const profile = notionProfiles[activeProfileId];
+  
+  if (!profile.apiKey || !profile.databaseId) {
+    console.error("API Key or Database ID missing in active profile.");
+    return null;
+  }
+  
+  return { notionApiKey: profile.apiKey, notionDatabaseId: profile.databaseId };
 }
 
-// Listen for messages from content or popup scripts
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Message received in background script:", message);
-
   if (message.action === "problemData") {
-    console.log("Problem Data Received:", message.data);
-    problemData = message.data; // Store problem data
+    problemData = message.data; 
+    // Forward detect language to popup if it's open
+    if (problemData.detectedLanguage) {
+        browser.runtime.sendMessage({ action: "problemData", data: problemData }).catch(() => {});
+    }
     sendResponse({ status: "success" });
   }
 
   if (message.action === "saveToNotion") {
-    console.log("Popup Data Received:", message.data);
-
     if (!problemData) {
       const errorMsg = "No problem data available. Try refreshing the page.";
-      console.error(errorMsg);
       sendResponse({ status: "error", error: errorMsg });
-      browser.runtime.sendMessage({ action: "notionResponse", response: { status: "error", error: errorMsg } });
-      return true; // Keep the message channel open for async response
+      return true;
     }
 
-    // Format the data correctly
     const formattedData = {
       Done: message.data.correct ? true : false,
       "Question": problemData["Question"] || "Untitled",
@@ -39,17 +43,16 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       "Tag": Array.isArray(problemData.tags) ? problemData.tags : [],
       "Level": problemData.difficulty || "Unknown",
       "My expertise": message.data.difficulty || "",
+      "Language": message.data.language || "Unknown", // Added Language
       "Alternative methods": message.data.alternativeMethods || "",
       "Remarks": message.data.remarks || "",
       "Solution link": problemData.Solution || "",
       "Worth reviewing?": message.data.worthReviewing ? true : false,
     };
 
-    console.log("Formatted Data to Save:", formattedData);
-
     getNotionCredentials().then(credentials => {
       if (!credentials) {
-        const errorMsg = "Notion API credentials missing.";
+        const errorMsg = "Active profile missing API credentials.";
         sendResponse({ status: "error", error: errorMsg });
         browser.runtime.sendMessage({ action: "notionResponse", response: { status: "error", error: errorMsg } });
         return;
@@ -58,7 +61,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const { notionApiKey, notionDatabaseId } = credentials;
       addEntryToNotionDatabase(formattedData, notionApiKey, notionDatabaseId)
         .then(response => {
-          browser.runtime.sendMessage({ action: "notionResponse", response }); // Send response to popup
+          browser.runtime.sendMessage({ action: "notionResponse", response });
           sendResponse(response);
         })
         .catch(error => {
@@ -68,11 +71,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
     });
 
-    return true; // Keep the message channel open for async response
+    return true; 
   }
 });
 
-// Function to add an entry to the Notion database with error handling & retry logic
 async function addEntryToNotionDatabase(data, notionApiKey, databaseId) {
   const url = "https://api.notion.com/v1/pages";
   let attempt = 0;
@@ -88,10 +90,7 @@ async function addEntryToNotionDatabase(data, notionApiKey, databaseId) {
           "Notion-Version": "2022-06-28",
         },
         body: JSON.stringify({
-          parent: {
-            type: "database_id",
-            database_id: databaseId
-          },
+          parent: { type: "database_id", database_id: databaseId },
           properties: {
             "Question": { title: [{ text: { content: data["Question"] } }] },
             "Question Link": { url: data["QuestionLink"] },
@@ -99,7 +98,8 @@ async function addEntryToNotionDatabase(data, notionApiKey, databaseId) {
             "Tag": { multi_select: data.Tag.map(tag => ({ name: tag })) },
             "Level": { select: { name: data.Level } },
             "My Expertise": { select: { name: data["My expertise"] } },
-            "Alternative Method": { multi_select: data["Alternative methods"].split(", ").map(method => ({ name: method })) },
+            "Language": { select: { name: data["Language"] } }, // Mapped to Notion Select
+            "Alternative Method": { multi_select: data["Alternative methods"] ? data["Alternative methods"].split(", ").map(method => ({ name: method })) : [] },
             "Remarks": { rich_text: [{ text: { content: data.Remarks } }] },
             "My Solution Link": { url: data["Solution link"] },
             "Worth reviewing?": { checkbox: data["Worth reviewing?"] },
@@ -107,59 +107,27 @@ async function addEntryToNotionDatabase(data, notionApiKey, databaseId) {
         }),
       });
 
-      if (response.status === 401) {
-        const errorMsg = "Authentication failed: Invalid API token.";
-        console.error(errorMsg);
-        notifyUser(errorMsg);
-        return { status: "error", error: errorMsg };
-      } 
-      if (response.status === 403) {
-        const errorMsg = "Access denied: Ensure your Notion integration has the right permissions.";
-        console.error(errorMsg);
-        notifyUser(errorMsg);
-        return { status: "error", error: errorMsg };
-      } 
+      if (response.status === 401) { throw new Error("Authentication failed: Invalid API token."); } 
+      if (response.status === 403) { throw new Error("Access denied: Check permissions."); } 
       if (response.status === 429) {
         const retryAfter = parseInt(response.headers.get("Retry-After") || "1", 10);
-        console.warn(`Rate limited. Retrying in ${retryAfter} seconds...`);
         await delay(retryAfter * 1000);
         attempt++;
         continue;
       } 
       if (!response.ok) {
         const error = await response.json();
-        const errorMsg = `Notion API Error: ${response.status} - ${error.message}`;
-        console.error(errorMsg);
-        notifyUser(errorMsg);
-        return { status: "error", error: errorMsg };
+        throw new Error(`Notion API Error: ${response.status} - ${error.message}`);
       }
 
-      console.log("Entry successfully added to Notion.");
       return { status: "success" };
 
     } catch (error) {
-      console.error("Failed to send request to Notion:", error);
-      notifyUser("Network error occurred while sending data to Notion.");
-      return { status: "error", error: error.message };
+      console.error(error);
+      if (attempt === maxAttempts - 1) return { status: "error", error: error.message };
+      attempt++;
     }
   }
-
-  const errorMsg = "Max retry attempts reached.";
-  console.error(errorMsg);
-  return { status: "error", error: errorMsg };
 }
 
-// Utility function to delay retries
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Utility function to notify the user
-function notifyUser(message) {
-  browser.notifications.create({
-    type: "basic",
-    iconUrl: "icons/icon48.png",
-    title: "LeetNotion Sync",
-    message: message,
-  });
-}
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }

@@ -1,23 +1,23 @@
 console.log("Content script loaded!");
 
-window.addEventListener('load', () => {
-  console.log("Page is fully loaded!");
-});
+// ✅ Robust function to extract problem slug from any LeetCode URL
+function getProblemSlug() {
+  const match = window.location.pathname.match(/\/problems\/([^/]+)/);
+  return match ? match[1] : null;
+}
 
 // Define an asynchronous function to fetch problem data from LeetCode
 async function fetchSiteData() {
-  // 🔹 Get the current page URL
-  const currentUrl = window.location.href;
+  const problemSlug = getProblemSlug();
+  
+  if (!problemSlug) {
+    console.error("Could not extract problem slug from URL:", window.location.href);
+    return null;
+  }
 
-  // 🔹 Extract the problem "slug" (e.g., "two-sum") from the URL
-  // Example: "https://leetcode.com/problems/two-sum/" → Extract "two-sum"
-  const problemSlug = currentUrl.split('/')[4]; 
-
-  // 🔹 Construct the description page URL (for debugging/logging purposes)
   const descriptionUrl = `https://leetcode.com/problems/${problemSlug}/description/`;
-  console.log("Description Page URL:", descriptionUrl);
+  console.log("Target Problem:", problemSlug);
 
-  // 🔹 Define the GraphQL query to request problem data
   const graphqlQuery = {
     query: `
       query questionData($titleSlug: String!) {
@@ -30,66 +30,79 @@ async function fetchSiteData() {
         }
       }
     `,
-    variables: {
-      titleSlug: problemSlug, // Use extracted problem slug dynamically
-    },
+    variables: { titleSlug: problemSlug },
   };
 
   try {
-    // 🔹 Send a POST request to LeetCode's GraphQL API
     const response = await fetch("https://leetcode.com/graphql", {
-      method: "POST", // Sending data to the API
-      headers: {
-        "Content-Type": "application/json", // JSON request format
-      },
-      body: JSON.stringify(graphqlQuery), // Convert query to JSON
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(graphqlQuery),
     });
 
-    // 🔹 Convert the response to JSON format
     const data = await response.json();
-    console.log("Fetched Data:", data);
+    
+    // Safety check if data exists
+    if (!data.data || !data.data.question) {
+        console.error("GraphQL returned no question data.");
+        return null;
+    }
 
-    // 🔹 Extract the relevant problem details from API response
-    const problemTitle = data.data.question.title; // Get problem name
-    const difficulty = data.data.question.difficulty; // Get difficulty level
-    const tags = data.data.question.topicTags.map(tag => tag.name); // Extract topic tags
+    const problemTitle = data.data.question.title;
+    const difficulty = data.data.question.difficulty;
+    const tags = data.data.question.topicTags.map(tag => tag.name);
 
-    // 🔹 Log extracted data
-    console.log("Problem Title:", problemTitle);
-    console.log("Difficulty:", difficulty);
-    console.log("Tags:", tags);
+    // Detect Language (using the function from previous step)
+    const detectedLanguage = typeof detectLanguage === 'function' ? detectLanguage() : null;
 
-    // 🔹 Return the extracted problem data as an object
     return {
       QuestionLink: descriptionUrl,
       Question: problemTitle,
       difficulty: difficulty,
       tags: tags,
-      Solution: currentUrl,
+      Solution: window.location.href, // Use current actual URL for solution link
+      detectedLanguage: detectedLanguage
     };
 
   } catch (error) {
-    // 🔹 Handle errors if the request fails
     console.error("Error fetching problem data:", error);
-    return null; // Return null if an error occurs
+    return null;
   }
 }
 
-// Send the extracted data to the background script
 async function sendProblemDataToBackground() {
   const problemData = await fetchSiteData();
-
-  browser.runtime.sendMessage({
-    action: 'problemData',
-    data: problemData,
-  }).then((response) => {
-    console.log('Data sent successfully:', response);
-  }).catch((error) => {
-    console.error('Error sending data:', error);
-  });
+  
+  if (problemData) {
+      browser.runtime.sendMessage({
+        action: 'problemData',
+        data: problemData,
+      }).catch((error) => console.error('Error sending data:', error));
+  }
 }
 
-// Run the script on page load
-window.addEventListener('load', () => {
-  sendProblemDataToBackground();
+// ✅ 1. Initial Run
+window.addEventListener('load', sendProblemDataToBackground);
+
+// ✅ 2. Handle SPA Navigation (Detects URL changes without reload)
+let lastUrl = location.href;
+new MutationObserver(() => {
+  const url = location.href;
+  if (url !== lastUrl) {
+    lastUrl = url;
+    console.log("URL changed. Re-fetching data...");
+    // slight delay to let LeetCode render
+    setTimeout(sendProblemDataToBackground, 1000); 
+  }
+}).observe(document, {subtree: true, childList: true});
+
+// ✅ 3. Listen for "Manual Fetch" command from Popup
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "manualFetch") {
+        console.log("Manual fetch triggered by popup.");
+        sendProblemDataToBackground().then(() => {
+            sendResponse({status: "success"});
+        });
+        return true; // Keep channel open for async response
+    }
 });

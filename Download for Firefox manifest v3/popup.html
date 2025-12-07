@@ -7,77 +7,126 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  
+  <header>
+    <div class="logo">LeetNotion</div>
+    <div class="header-actions">
+      <button id="refresh-data-btn" class="icon-btn" title="Refresh Data from Page">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+      </button>
+      <button id="theme-toggle" class="icon-btn" title="Toggle Theme">
+        <svg id="theme-icon" viewBox="0 0 24 24" width="18" height="18"><path d="M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+
   <div class="tab-container">
-    <button class="tab-button" data-tab="save-tab">Save Problem</button>
+    <button class="tab-button active" data-tab="save-tab">Save</button>
     <button class="tab-button" data-tab="settings-tab">Settings</button>
-    <button class="tab-button" data-tab="info-tab">Information</button>
+    <button class="tab-button" data-tab="info-tab">Info</button>
   </div>
 
-  <!-- Save Problem Tab -->
-  <div id="save-tab" class="tab-content active">
-    <h2>Save Problem to Notion</h2>
+  <main>
+    
+    <div id="save-tab" class="tab-content active">
+      
+      <div class="row-group">
+        <div class="input-group" style="flex: 1; margin-right: 10px;">
+          <label for="language-select">Language</label>
+          <select id="language-select" class="compact-select">
+            <option value="" disabled selected>Select...</option>
+            <option value="Python3">Python3</option>
+            <option value="Java">Java</option>
+            <option value="C++">C++</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="C#">C#</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Swift">Swift</option>
+            <option value="SQL">SQL</option>
+          </select>
+        </div>
+      </div>
 
-    <label>Perceived difficulty:</label>
-    <div class="difficulty-container">
-      <div class="difficulty-box" id="Easy" data-value="Easy">Easy</div>
-      <div class="difficulty-box" id="Medium" data-value="Medium">Medium</div>
-      <div class="difficulty-box" id="Hard" data-value="Hard">Hard</div>
+      <div class="input-group">
+        <label>Difficulty</label>
+        <div class="difficulty-container">
+          <div class="difficulty-box" id="Easy" data-value="Easy">Easy</div>
+          <div class="difficulty-box" id="Medium" data-value="Medium">Medium</div>
+          <div class="difficulty-box" id="Hard" data-value="Hard">Hard</div>
+        </div>
+        <input type="hidden" id="selected-difficulty" value="">
+      </div>
+
+      <div class="input-group">
+        <label for="alternative-methods">Alternative Methods</label>
+        <textarea id="alternative-methods" rows="1" placeholder="Any alternative methods..."></textarea>
+      </div>
+
+      <div class="input-group">
+        <label for="remarks">Remarks</label>
+        <textarea id="remarks" rows="1" placeholder="Notes..."></textarea>
+      </div>
+
+      <div class="toggles-row">
+        <div class="checkbox-container">
+          <input type="checkbox" id="correct">
+          <label for="correct">Solved?</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="worth-reviewing">
+          <label for="worth-reviewing">Review?</label>
+        </div>
+      </div>
+
+      <button id="save-btn" class="primary-btn">Save to Notion</button>
+      <p id="status-message" class="status-message"></p>
     </div>
 
-    <input type="hidden" id="selected-difficulty" value="">
+    <div id="settings-tab" class="tab-content">
+      <div class="card">
+        <h3>Active Profile</h3>
+        <div class="row-group">
+            <select id="profile-select" class="compact-select" style="flex: 1;"></select>
+            <button id="delete-profile-btn" class="icon-btn-danger" title="Delete Profile">🗑️</button>
+        </div>
+      </div>
 
-    <label for="alternative-methods">Alternative Methods:</label>
-    <textarea id="alternative-methods" rows="2" placeholder="Describe alternative approaches..."></textarea>
-
-    <label for="remarks">Remarks:</label>
-    <textarea id="remarks" rows="2" placeholder="Any additional comments..."></textarea>
-
-    <div class="checkbox-container">
-      <input type="checkbox" id="correct">
-      <label for="correct">Solved?</label>
+      <div class="card">
+        <h3>Edit Profile</h3>
+        <div class="input-group">
+          <label>Name</label>
+          <input type="text" id="profile-name" placeholder="e.g. Work">
+        </div>
+        <div class="input-group">
+          <label>API Key</label>
+          <input type="password" id="notion-api-key" placeholder="Notion API Key">
+        </div>
+        <div class="input-group">
+          <label>Database ID</label>
+          <input type="text" id="notion-database-id" placeholder="Database ID">
+        </div>
+        <button id="save-profile-btn" class="secondary-btn">Save Profile</button>
+      </div>
+      <p id="settings-status-message" class="status-message"></p>
     </div>
 
-    <div class="checkbox-container">
-      <input type="checkbox" id="worth-reviewing">
-      <label for="worth-reviewing">Worth Reviewing?</label>
+    <div id="info-tab" class="tab-content">
+      <div class="card">
+        <h3>About</h3>
+        <p style="font-size: 13px; color: var(--text-secondary);">
+          Sync your LeetCode solutions directly to your Notion database.
+        </p>
+        <ul class="link-list">
+          <li><a href="https://github.com/oilybikechain/LEETCODE-NOTION-SAVER" target="_blank">GitHub Repo</a></li>
+          <li><a href="https://developers.notion.com/" target="_blank">Notion API Docs</a></li>
+        </ul>
+      </div>
     </div>
 
-    <button id="save-btn">Save to Notion</button>
-    <p id="status-message" class="status-message"></p> <!-- ✅ Status Message for Saving to Notion -->
-
-  </div>
-
-  <!-- Settings Tab -->
-  <div id="settings-tab" class="tab-content">
-    <h2>Settings</h2>
-
-    <label for="notion-api-key">Notion API Key:</label>
-    <input type="text" id="notion-api-key" placeholder="Enter your Notion API key">
-
-    <label for="notion-database-id">Notion Database ID:</label>
-    <input type="text" id="notion-database-id" placeholder="Enter your Notion Database ID">
-
-    <button id="save-settings-btn">Save Settings</button>
-    <p id="settings-status-message" class="status-message"></p> <!-- ✅ Status Message for Saving Settings -->
-
-    <div id="saved-settings">
-      <h3>Saved Settings</h3>
-      <p><strong>API Key:</strong> <span id="display-api-key"></span></p>
-      <p><strong>Database ID:</strong> <span id="display-database-id"></span></p>
-    </div>
-  </div>
-
-  <!-- Information Tab -->
-  <div id="info-tab" class="tab-content">
-    <h2>Information</h2>
-    <p>Welcome to LeetNotion Sync! Here are some useful links:</p>
-    <ul>
-      <li><a href="https://github.com/oilybikechain/LEETCODE-NOTION-SAVER" target="_blank"><strong>GitHub Repository (for more information on how to use)</strong></a></li>
-      <li><a href="https://developers.notion.com/" target="_blank">Notion API Documentation</a></li>
-      <li><a href="https://leetcode.com/" target="_blank">LeetCode</a></li>
-    </ul>
-  </div>
-
+  </main>
+  
   <script src="popup.js"></script>
 </body>
 </html>
