@@ -108,7 +108,7 @@ async function createInPageModal() {
   // INJECTED CSS
   // ------------------------------------------
   const style = document.createElement('style');
-  style.textContent = `
+style.textContent = `
     :host {
       all: initial;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -149,7 +149,8 @@ async function createInPageModal() {
       color: #fff; font-size: 12px; outline: none;
       box-sizing: border-box; font-family: inherit;
     }
-    select:focus, textarea:focus { border-color: #8ab4f8; }
+    /* Updated Focus Color to Green */
+    select:focus, textarea:focus { border-color: #66bb6a; }
 
     /* Difficulty Dots */
     .dots { display: flex; gap: 8px; margin-top: 2px; }
@@ -165,21 +166,22 @@ async function createInPageModal() {
     .dot.medium.selected { background: #ff9800; }
     .dot.hard.selected { background: #f44336; }
 
-    /* Toggles */
+    /* Toggles - Updated Accent Color */
     .toggles { display: flex; gap: 15px; margin-bottom: 12px; }
     .check-wrap { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .check-wrap label { margin: 0; text-transform: none; color: #e0e0e0; font-size: 12px; font-weight: 400; cursor: pointer;}
-    input[type="checkbox"] { accent-color: #8ab4f8; cursor: pointer; }
+    input[type="checkbox"] { accent-color: #66bb6a; cursor: pointer; }
 
     /* Actions */
     .action-row { display: flex; gap: 8px; }
     
     .save-btn {
       flex: 2; padding: 10px; border: none; border-radius: 6px;
-      background: #8ab4f8; color: #1e1e1e; font-weight: 700; cursor: pointer;
+      background: #66bb6a; /* Green */
+      color: #1e1e1e; font-weight: 700; cursor: pointer;
       font-size: 13px; transition: background 0.2s;
     }
-    .save-btn:hover { background: #669df6; }
+    .save-btn:hover { background: #81c784; /* Lighter Green */ }
     .save-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
     .cancel-btn {
@@ -191,7 +193,6 @@ async function createInPageModal() {
 
     .status { text-align: center; margin-top: 8px; font-size: 11px; min-height: 15px; }
   `;
-
   // ------------------------------------------
   // MODAL HTML STRUCTURE
   // ------------------------------------------
@@ -204,7 +205,7 @@ async function createInPageModal() {
   card.innerHTML = `
     <div class="header">
       <div class="title-group">
-        <span class="title">✅ ${problemData.Question}</span>
+        <span class="title"> ${problemData.Question}</span>
         <div class="badges">
           <span class="badge ${problemData.difficulty}">${problemData.difficulty}</span>
           ${tagsHtml}

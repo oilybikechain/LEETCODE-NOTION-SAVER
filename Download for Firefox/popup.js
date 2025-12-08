@@ -77,7 +77,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 2. SETUP WIZARD LOGIC
   // ===============================================
 
-  function openSetupWizard() {
+  async function openSetupWizard() {
+      // PRE-FILL SETUP INPUTS
+      const { notionApiKey, notionDatabaseId } = await browser.storage.local.get(["notionApiKey", "notionDatabaseId"]);
+      if (notionApiKey) setupApiKey.value = notionApiKey;
+      if (notionDatabaseId) setupDbId.value = notionDatabaseId;
+
       header.classList.add("hidden");
       mainView.classList.add("hidden");
       settingsView.classList.add("hidden");
@@ -137,6 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       setupError.textContent = "";
       setupNextBtn.disabled = true;
 
+      // STEP 2: API KEY
       if (currentStep === 2) {
           const key = setupApiKey.value.trim();
           if (!key) {
@@ -145,19 +151,25 @@ document.addEventListener("DOMContentLoaded", async () => {
               setupNextBtn.disabled = false;
               return;
           }
-          if(!apiKeyInput.value) {
+          
+          // Auto-save logic if user proceeds without clicking save
+          if(!apiKeyInput.value || apiKeyInput.value !== key) {
              await browser.storage.local.set({ notionApiKey: key });
              apiKeyInput.value = key;
           }
+          
           setupApiKey.classList.remove("invalid");
           setupApiKey.classList.add("valid");
       }
 
+      // STEP 3: DATABASE ID
       if (currentStep === 3) {
           const dbId = setupDbId.value.trim();
-          const key = setupApiKey.value.trim() || apiKeyInput.value.trim();
+          // Use input or fallback to saved value
+          const finalDbId = dbId || dbIdInput.value;
+          const finalKey = setupApiKey.value.trim() || apiKeyInput.value.trim();
 
-          if (dbId.length < 20) {
+          if (finalDbId.length < 20) {
               setupError.textContent = "Invalid ID format.";
               setupDbId.classList.add("invalid");
               setupNextBtn.disabled = false;
@@ -168,13 +180,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           try {
               const response = await browser.runtime.sendMessage({
                   action: "validateNotion",
-                  data: { apiKey: key, dbId: dbId }
+                  data: { apiKey: finalKey, dbId: finalDbId }
               });
 
               if (response.status === "success") {
-                  await browser.storage.local.set({ notionApiKey: key, notionDatabaseId: dbId });
-                  apiKeyInput.value = key;
-                  dbIdInput.value = dbId;
+                  await browser.storage.local.set({ notionApiKey: finalKey, notionDatabaseId: finalDbId });
+                  apiKeyInput.value = finalKey;
+                  dbIdInput.value = finalDbId;
+                  
                   closeSetupWizard();
                   fetchData(); 
               } else {
@@ -193,8 +206,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   launchSetupBtn.addEventListener("click", () => {
-      if (apiKeyInput.value) setupApiKey.value = apiKeyInput.value;
-      if (dbIdInput.value) setupDbId.value = dbIdInput.value;
       openSetupWizard();
   });
 
@@ -275,7 +286,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   function renderDashboard(data) {
       reviewListContainer.innerHTML = "";
       
-      // Safety check in case data is malformed
       if (!data || (!data.unsolved && !data.review)) {
           reviewListContainer.innerHTML = '<p class="status-message error">Invalid data structure</p>';
           return;
@@ -333,7 +343,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             tagsContainer.appendChild(s);
         });
         
-        // Auto-detect Language Override (If valid)
         if(data.detectedLanguage) {
              const opts = Array.from(languageSelect.options).map(o => o.value);
              if (opts.includes(data.detectedLanguage)) {
@@ -347,10 +356,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       saveBtn.textContent = "Saving...";
       saveBtn.disabled = true;
       
-      // Update User Preferences
       await browser.storage.local.set({ lastUsedLanguage: languageSelect.value });
 
-      // Apply Defaults logic
       const officialDiff = document.getElementById("display-difficulty").textContent;
       const userDiff = selectedDifficulty.value;
       const methods = approachInput.value.trim();
@@ -381,7 +388,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
   });
 
-  // Save Settings
   saveKeyBtn.addEventListener("click", async () => {
       await browser.storage.local.set({ notionApiKey: apiKeyInput.value.trim() });
       document.getElementById("settings-status-message").textContent = "✅ Key Saved";
@@ -391,7 +397,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("settings-status-message").textContent = "✅ DB ID Saved";
   });
   
-  // Dots
   document.querySelectorAll(".dot").forEach(dot => {
       dot.addEventListener("click", () => {
           document.querySelectorAll(".dot").forEach(d => d.classList.remove("selected"));
