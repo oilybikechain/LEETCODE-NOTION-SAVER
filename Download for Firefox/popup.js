@@ -76,6 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ===============================================
 
   async function openSetupWizard() {
+      // Pre-fill setup inputs
       const { notionApiKey, notionDatabaseId } = await browser.storage.local.get(["notionApiKey", "notionDatabaseId"]);
       if (notionApiKey) setupApiKey.value = notionApiKey;
       if (notionDatabaseId) setupDbId.value = notionDatabaseId;
@@ -268,8 +269,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       
       const loadingText = scope === "all" ? "Scanning full database..." : "Scanning recent history...";
       
-      // ✅ SAFE REPLACEMENT FOR innerHTML
-      reviewListContainer.textContent = ""; 
+      // ✅ SAFE DOM CREATION
+      reviewListContainer.textContent = "";
       const p = document.createElement('p');
       p.className = "small-text";
       p.style.textAlign = "center";
@@ -294,7 +295,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderDashboard(data) {
-      reviewListContainer.textContent = ""; // Clear safe
+      reviewListContainer.textContent = "";
       
       if (!data || (!data.unsolved && !data.review)) {
           const p = document.createElement('p');
@@ -369,7 +370,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("display-difficulty").textContent = data.difficulty;
         document.getElementById("display-difficulty").className = `badge ${data.difficulty}`;
         const tagsContainer = document.getElementById("display-tags");
-        tagsContainer.textContent = ""; // Safe clear
+        tagsContainer.textContent = "";
         data.tags.slice(0,4).forEach(t => {
             const s = document.createElement("span"); 
             s.className = "tag-chip"; 

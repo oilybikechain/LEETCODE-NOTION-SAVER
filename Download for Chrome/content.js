@@ -72,7 +72,7 @@ async function fetchSiteData() {
   }
 }
 
-// Helper to create elements with classes/attributes
+// Helper for DOM creation
 function createEl(tag, className, text) {
     const el = document.createElement(tag);
     if (className) el.className = className;
@@ -98,7 +98,6 @@ async function createInPageModal() {
   modalContainer.id = "leetnotion-modal-container";
   const shadow = modalContainer.attachShadow({ mode: 'open' });
 
-  // CSS (Content is safe)
   const style = document.createElement('style');
   style.textContent = `
     :host { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
@@ -174,7 +173,6 @@ async function createInPageModal() {
     .status { text-align: center; margin-top: 8px; font-size: 11px; min-height: 15px; }
   `;
 
-  // --- BUILD DOM MANUALLY (No innerHTML) ---
   const card = createEl('div', 'modal-card');
 
   // HEADER
@@ -186,7 +184,6 @@ async function createInPageModal() {
   const diffBadge = createEl('span', `badge ${problemData.difficulty}`, problemData.difficulty);
   badges.appendChild(diffBadge);
   
-  // Tags
   problemData.tags.slice(0, 3).forEach(t => {
       badges.appendChild(createEl('span', 'tag', t));
   });
@@ -299,7 +296,6 @@ async function createInPageModal() {
   }
 
   const dots = [dotE, dotM, dotH];
-  // Pre-select
   const initialDot = dots.find(d => d.dataset.val === problemData.difficulty);
   if(initialDot) initialDot.classList.add('selected');
 
