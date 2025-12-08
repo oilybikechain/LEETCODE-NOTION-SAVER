@@ -5,16 +5,12 @@
   --input-bg: #383838;
   --text-primary: #e0e0e0;
   --text-secondary: #a0a0a0;
-  
-  /* ACCENT: GREEN */
-  --accent-color: #66bb6a; /* Soft Green for Dark Mode */
+  --accent-color: #66bb6a; 
   --accent-hover: #81c784;
   --btn-text-color: #1e1e1e;
+  --logo-leet: #ffa726;
+  --logo-notion: #ffffff;
   
-  /* LOGO COLORS */
-  --logo-leet: #ffa726; /* Orange */
-  --logo-notion: #ffffff; /* White */
-
   --border-color: #444;
   --success-color: #81c995;
   --danger-color: #f28b82;
@@ -31,15 +27,11 @@ body.light-theme {
   --input-bg: #f4f4f0;
   --text-primary: #2c3e50;
   --text-secondary: #5f6368;
-  
-  /* ACCENT: GREEN */
-  --accent-color: #4caf50; /* Stronger Green for Light Mode */
+  --accent-color: #4caf50;
   --accent-hover: #43a047;
   --btn-text-color: #ffffff;
-
-  /* LOGO COLORS */
-  --logo-leet: #fb8c00; /* Darker Orange */
-  --logo-notion: #000000; /* Black */
+  --logo-leet: #fb8c00;
+  --logo-notion: #000000;
   
   --border-color: #e0e0e0;
   --success-color: #27ae60;
@@ -49,24 +41,27 @@ body.light-theme {
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html {
+  width: 340px; /* ✅ Fixed Width as requested */
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  width: 340px; 
   background-color: var(--bg-color);
   color: var(--text-primary);
   padding: 16px;
   font-size: 13px;
-  transition: background 0.3s, color 0.3s;
+  width: 340px; /* ✅ Fixed Width */
+  min-height: 200px; 
+  max-height: 600px;
+  overflow-y: auto; /* Handles vertical content overflow */
 }
 
 /* HEADER */
 header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-
-/* LOGO STYLES */
 .logo { font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
 .txt-leet { color: var(--logo-leet); }
 .txt-notion { color: var(--logo-notion); }
-
 .header-actions { display: flex; gap: 8px; }
 
 .icon-btn {
@@ -93,21 +88,11 @@ input, textarea, select {
 }
 input:focus, textarea:focus, select:focus { border-color: var(--accent-color); background: var(--surface-color); }
 
-/* SETTINGS INPUT GROUPS */
+/* INPUT GROUPS (Used in Settings & Setup) */
 .setting-row { margin-bottom: 15px; }
-.input-btn-group { 
-  display: flex; 
-  gap: 8px; 
-  align-items: stretch;
-}
-.input-btn-group input { 
-  flex: 1; min-width: 0; width: auto;
-}
-.small-btn { 
-  width: auto !important; flex: 0 0 auto;
-  padding: 0 16px; font-size: 11px; 
-  white-space: nowrap; display: flex; align-items: center; justify-content: center;
-}
+.input-btn-group { display: flex; gap: 8px; align-items: stretch; }
+.input-btn-group input { flex: 1; min-width: 0; width: auto; }
+.small-btn { width: auto !important; flex: 0 0 auto; padding: 0 12px; font-size: 11px; white-space: nowrap; display: flex; align-items: center; justify-content: center; }
 
 .divider { height: 1px; background-color: var(--border-color); margin: 15px 0; }
 
@@ -140,7 +125,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent-color); b
 /* Problem Card */
 .problem-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 16px; box-shadow: var(--shadow); }
 .problem-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.problem-title { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+.problem-title { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
 .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; background: #444; }
 .badge.Easy { color: var(--easy-color); background: rgba(76,175,80,0.15); }
 .badge.Medium { color: var(--medium-color); background: rgba(255,152,0,0.15); }
@@ -170,3 +155,131 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent-color); b
 .status-message { text-align: center; margin-top: 8px; font-size: 12px; font-weight: 600; min-height: 18px; }
 .status-message.success { color: var(--success-color); }
 .status-message.error { color: var(--danger-color); }
+
+/* ============================
+   SETUP WIZARD STYLES 
+   ============================ */
+
+.setup-overlay {
+  display: flex; flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.setup-container {
+  display: flex; flex-direction: column; 
+  flex: 1;
+}
+
+.setup-progress {
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+}
+
+.step-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--surface-color); border: 1px solid var(--border-color);
+  transition: 0.3s;
+}
+.step-dot.active { background: var(--accent-color); border-color: var(--accent-color); transform: scale(1.2); }
+.step-line { flex: 1; height: 2px; background: var(--border-color); margin: 0 5px; max-width: 40px; }
+
+.setup-step { display: none; flex: 1; animation: fadeIn 0.3s ease; }
+.setup-step.active { display: block; }
+
+.setup-step h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-primary); }
+.setup-step p { font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4; }
+
+.setup-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.small-text { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+
+.setup-actions { display: flex; margin-top: 20px; }
+
+.msg-success-inline { font-size: 11px; color: var(--success-color); margin-top: 4px; font-weight: bold; }
+
+input.valid { border-color: var(--success-color); }
+input.invalid { border-color: var(--danger-color); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ============================
+   REVIEW LIST STYLES 
+   ============================ */
+
+.review-header-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.review-header-row h3 { margin: 0; color: var(--text-primary); font-size: 14px; }
+
+/* SEGMENTED TOGGLE */
+.toggle-container {
+  display: flex;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 2px;
+  overflow: hidden;
+}
+
+.toggle-container input { display: none; }
+
+.toggle-container label {
+  font-size: 10px; font-weight: 700;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  transition: 0.2s;
+  text-transform: uppercase;
+}
+
+.toggle-container input:checked + label {
+  background-color: var(--surface-color);
+  color: var(--accent-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.review-list { display: flex; flex-direction: column; gap: 8px; }
+
+.review-item {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: all 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.review-item:hover {
+  border-color: var(--accent-color);
+  transform: translateX(2px);
+}
+
+.review-info { flex: 1; min-width: 0; }
+.review-title {
+  font-weight: 700; color: var(--text-primary);
+  font-size: 13px; margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.review-date { font-size: 10px; color: var(--text-secondary); }
+
+.review-badge {
+  font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; 
+  text-transform: uppercase; margin-left: 8px; flex-shrink: 0;
+}
+.review-badge.Easy { color: var(--easy-color); background: rgba(76,175,80,0.15); }
+.review-badge.Medium { color: var(--medium-color); background: rgba(255,152,0,0.15); }
+.review-badge.Hard { color: var(--hard-color); background: rgba(244,67,54,0.15); }
+.review-badge.Unknown { background: var(--input-bg); color: var(--text-secondary); }
+
+.empty-review { text-align: center; color: var(--text-secondary); margin-top: 30px; font-size: 13px; }

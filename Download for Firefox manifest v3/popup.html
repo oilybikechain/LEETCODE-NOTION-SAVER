@@ -19,7 +19,7 @@
       </button>
       
       <button id="settings-toggle" class="icon-btn" title="Settings">
-        <svg id="icon-gear" viewBox="0 0 24 24" width="20" height="20"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
+        <svg id="icon-gear" viewBox="0 0 24 24" width="20" height="20"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
         <svg id="icon-home" class="hidden" viewBox="0 0 24 24" width="20" height="20"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/></svg>
       </button>
     </div>
@@ -87,9 +87,25 @@
       <p id="status-message" class="status-message"></p>
     </div>
 
+    <div id="review-view" class="hidden">
+      <div class="review-header-row">
+        <h3>Review Queue</h3>
+        <div class="toggle-container">
+          <input type="radio" id="scope-recent" name="review-toggle" checked>
+          <label for="scope-recent" title="Scan last 100 entries">Recent</label>
+          
+          <input type="radio" id="scope-all" name="review-toggle">
+          <label for="scope-all" title="Scan entire database">All</label>
+        </div>
+      </div>
+      
+      <div id="review-list-container" class="review-list">
+        <p class="small-text" style="text-align:center;">Loading...</p>
+      </div>
+    </div>
+
     <div id="settings-view" class="hidden">
       <h3>Settings</h3>
-      
       <div class="card">
         <div class="card-header">
           <h4>Notion Connection</h4>
@@ -123,6 +139,8 @@
              <input type="checkbox" id="auto-detect">
              <label for="auto-detect">Auto-open popup on Submit</label>
           </div>
+          <div class="divider"></div>
+          <button id="launch-setup-btn" class="secondary-btn">Run Setup Wizard</button>
         </div>
       </div>
 
@@ -131,6 +149,81 @@
         <a href="https://developers.notion.com/" target="_blank">Notion Docs</a>
       </div>
     </div>
+
+    <div id="setup-view" class="setup-overlay hidden">
+      <div class="setup-container">
+        
+        <div class="setup-progress">
+          <div class="step-dot active" data-step="1"></div>
+          <div class="step-line"></div>
+          <div class="step-dot" data-step="2"></div>
+          <div class="step-line"></div>
+          <div class="step-dot" data-step="3"></div>
+        </div>
+
+        <div id="step-1" class="setup-step active">
+          <h3>Welcome to LeetNotion!</h3>
+          <p>To start, duplicate our Notion template to your workspace.</p>
+          <div class="setup-card">
+            <label>1. Get Template</label>
+            <p class="small-text">Duplicating ensures database compatibility.</p>
+            <a href="https://oilybikechain.notion.site/LeetCode-Tracker-Template-1574d6f8510c8004944ec73167a54483" target="_blank" class="secondary-btn" style="text-align: center; display: block; text-decoration: none; margin-top:8px;">Open & Duplicate Template</a>
+          </div>
+        </div>
+
+        <div id="step-2" class="setup-step">
+          <h3>Create Integration</h3>
+          <p>Go to <a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--accent-color);">notion.so/my-integrations</a> to get an API Key.</p>
+          <div class="setup-card">
+            <label>2. Configure Capabilities</label>
+            <p class="small-text" style="line-height: 1.5; margin-bottom: 8px;">
+              Create a new integration. Ensure these are checked:
+            </p>
+            <ul style="font-size: 11px; color: var(--text-secondary); margin-left: 15px; margin-bottom: 10px;">
+              <li>Read content</li>
+              <li>Update content</li>
+              <li>Insert content</li>
+              <li>No user information</li>
+            </ul>
+            <div class="divider"></div>
+            <label>Enter Integration Token</label>
+            <div class="input-btn-group">
+                <input type="text" id="setup-api-key" placeholder="Paste your API key here...">
+                <button id="setup-save-key-btn" class="secondary-btn small-btn">Save</button>
+            </div>
+            <p id="setup-key-msg" class="msg-success-inline"></p>
+          </div>
+        </div>
+
+        <div id="step-3" class="setup-step">
+          <h3>Get Database ID</h3>
+          <p>Go to your new template. Click <b>...</b> > <b>Open as Full Page</b>.</p>
+          <div class="setup-card">
+            <label>3. Copy ID from URL</label>
+            <p class="small-text" style="margin-bottom: 8px;">
+              The ID is the 32-character code in the URL (between <code>/</code> and <code>?</code>).
+            </p>
+            <div class="input-btn-group">
+                <input type="text" id="setup-db-id" placeholder="e.g. 8b9f...">
+                <button id="setup-save-db-btn" class="secondary-btn small-btn">Save</button>
+            </div>
+            <p id="setup-db-msg" class="msg-success-inline"></p>
+            <p class="small-text" style="margin-top: 10px; color: var(--accent-color);">
+              ⚠️ Don't forget to connect your Integration to the database! (Three dots > Connect to)
+            </p>
+          </div>
+        </div>
+
+        <div class="setup-actions">
+          <button id="setup-back-btn" class="secondary-btn hidden" style="width: auto;">Back</button>
+          <div style="flex:1;"></div>
+          <button id="setup-next-btn" class="primary-btn" style="width: auto;">Next</button>
+        </div>
+        
+        <p id="setup-error" class="status-message error"></p>
+      </div>
+    </div>
+
   </main>
   
   <script src="popup.js"></script>
