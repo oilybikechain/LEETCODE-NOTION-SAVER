@@ -2,7 +2,10 @@ let problemData = null;
 
 async function getNotionCredentials() {
   const { notionApiKey, notionDatabaseId } = await browser.storage.local.get(["notionApiKey", "notionDatabaseId"]);
-  if (!notionApiKey || !notionDatabaseId) return null;
+  
+  if (!notionApiKey || !notionDatabaseId) {
+    return null;
+  }
   return { notionApiKey, notionDatabaseId };
 }
 
@@ -13,9 +16,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "success" });
   }
 
-  // 2. FETCH REVIEW LIST (Updated)
+  // 2. FETCH DASHBOARD (Unsolved + Review)
   if (message.action === "fetchReviewList") {
-    const mode = message.mode || "recent"; // 'recent' or 'all'
+    const mode = message.mode || "recent"; 
 
     getNotionCredentials().then(creds => {
         if (!creds) { 
@@ -23,8 +26,8 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             return; 
         }
         
-        fetchReviewCandidates(creds, mode)
-            .then(list => sendResponse({ status: "success", data: list }))
+        fetchDashboardData(creds, mode)
+            .then(data => sendResponse({ status: "success", data: data }))
             .catch(err => sendResponse({ status: "error", error: err.message }));
     });
     return true; 
@@ -32,24 +35,31 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // 3. SAVE TO NOTION
   if (message.action === "saveToNotion") {
-    if (!problemData) { sendResponse({ status: "error", error: "No data" }); return true; }
+    if (!problemData) { 
+      sendResponse({ status: "error", error: "No data available. Refresh page." }); 
+      return true; 
+    }
     
     getNotionCredentials().then(creds => {
-        if(!creds) { sendResponse({status:"error", error:"Missing Credentials"}); return; }
+        if(!creds) { 
+            sendResponse({status:"error", error:"Missing Credentials"}); 
+            return; 
+        }
         
+        // Defaults are handled in popup.js, but we provide fallbacks here just in case
         const formattedData = {
            Done: message.data.correct,
            "Question": problemData["Question"],
            "QuestionLink": problemData["QuestionLink"],
            "Tag": problemData.tags || [],
            "Level": problemData.difficulty,
-           "My expertise": message.data.difficulty || problemData.difficulty,
-           "Language": message.data.language || "plain text",
-           "Alternative methods": message.data.alternativeMethods || "",
-           "Remarks": message.data.remarks || "",
+           "My expertise": message.data.difficulty || problemData.difficulty, 
+           "Language": message.data.language || "Python",
+           "Alternative methods": message.data.alternativeMethods || "None",
+           "Remarks": message.data.remarks || "None",
            "Solution link": problemData.Solution || "",
            "Worth reviewing?": message.data.worthReviewing || false,
-           CodeContent: problemData.code || ""
+           CodeContent: message.data.code || problemData.code || ""
         };
 
         addEntryToNotionDatabase(formattedData, creds.notionApiKey, creds.notionDatabaseId)
@@ -59,35 +69,43 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // 4. VALIDATE
+  // 4. VALIDATE CREDENTIALS
   if (message.action === "validateNotion") {
       const { apiKey, dbId } = message.data;
       fetch(`https://api.notion.com/v1/databases/${dbId}`, {
           method: "GET",
-          headers: { "Authorization": `Bearer ${apiKey}`, "Notion-Version": "2022-06-28" }
-      }).then(async response => {
-          if (response.ok) sendResponse({ status: "success" });
-          else {
+          headers: {
+              "Authorization": `Bearer ${apiKey}`,
+              "Notion-Version": "2022-06-28"
+          }
+      })
+      .then(async response => {
+          if (response.ok) {
+              sendResponse({ status: "success" });
+          } else {
               const err = await response.json();
               sendResponse({ status: "error", error: err.message || "Invalid Credentials" });
           }
-      }).catch(() => sendResponse({ status: "error", error: "Network Error" }));
+      })
+      .catch(error => {
+          sendResponse({ status: "error", error: "Network Error" });
+      });
       return true; 
   }
 });
 
 // ============================================
-// LOGIC: FETCH & DEDUPLICATE REVIEWS
+// LOGIC: FETCH DASHBOARD DATA
 // ============================================
 
-async function fetchReviewCandidates({ notionApiKey, notionDatabaseId }, mode) {
+async function fetchDashboardData({ notionApiKey, notionDatabaseId }, mode) {
     let hasMore = true;
     let startCursor = undefined;
     let allResults = [];
     
-    // Safety break for "All" mode to prevent infinite loops (cap at 10 requests / 1000 items)
+    // "Recent" = 1 page (100 items), "All" = up to 20 pages
     let requestsMade = 0;
-    const maxRequests = (mode === "recent") ? 1 : 10; 
+    const maxRequests = (mode === "recent") ? 1 : 20; 
 
     while (hasMore && requestsMade < maxRequests) {
         const response = await fetch(`https://api.notion.com/v1/databases/${notionDatabaseId}/query`, {
@@ -98,7 +116,7 @@ async function fetchReviewCandidates({ notionApiKey, notionDatabaseId }, mode) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                sorts: [{ timestamp: "created_time", direction: "descending" }],
+                sorts: [{ timestamp: "created_time", direction: "descending" }], 
                 page_size: 100,
                 start_cursor: startCursor
             })
@@ -114,62 +132,48 @@ async function fetchReviewCandidates({ notionApiKey, notionDatabaseId }, mode) {
         requestsMade++;
     }
 
-    // Deduplication Logic (Latest Entry Wins)
+    // Deduplication & Categorization
     const uniqueProblems = new Set();
+    const unsolvedList = [];
     const reviewList = [];
 
-    // Since we sorted by DESCENDING time, the first time we see a Problem Title, 
-    // it IS the latest entry.
     for(const page of allResults) {
         const titleProp = page.properties["Question"];
         const title = titleProp?.title?.[0]?.plain_text;
         
         if(!title) continue;
 
-        // If we've already seen this problem, this current 'page' is an OLDER entry.
-        // We skip it because the newer entry (already processed) dictates the current status.
+        // Skip if already processed (Latest entry wins)
         if(uniqueProblems.has(title)) continue;
-        
         uniqueProblems.add(title);
         
+        const isDone = page.properties["Done"]?.checkbox === true;
         const isWorthReviewing = page.properties["Worth reviewing?"]?.checkbox === true;
 
-        // If the LATEST entry says "Worth Reviewing", add it to the list.
-        if(isWorthReviewing) {
-            reviewList.push({
-                title: title,
-                url: page.properties["Question Link"]?.url || "",
-                difficulty: page.properties["Level"]?.select?.name || "Unknown",
-                lastPracticed: page.created_time
-            });
+        const item = {
+            title: title,
+            url: page.properties["Question Link"]?.url || "",
+            difficulty: page.properties["Level"]?.select?.name || "Unknown",
+            lastPracticed: page.created_time
+        };
+
+        if (!isDone) {
+            unsolvedList.push(item);
+        } else if (isWorthReviewing) {
+            reviewList.push(item);
         }
     }
-    return reviewList;
+    
+    return { unsolved: unsolvedList, review: reviewList };
 }
 
-// ... [addEntryToNotionDatabase remains unchanged] ...
+// ============================================
+// LOGIC: ADD ENTRY (No Code Block)
+// ============================================
+
 async function addEntryToNotionDatabase(data, notionApiKey, databaseId) {
   const url = "https://api.notion.com/v1/pages";
   
-  const childrenBlocks = [];
-  if (data.CodeContent) {
-      let notionLang = data.Language.toLowerCase().replace("++", "pp").replace("#", "sharp");
-      const validLangs = ["javascript", "java", "python", "cpp", "csharp", "go", "ruby", "scala", "swift", "typescript", "sql", "html", "css", "plain text", "dart", "kotlin", "php"];
-      if (!validLangs.includes(notionLang)) {
-          if (notionLang === "c++") notionLang = "cpp";
-          else if (notionLang === "python3") notionLang = "python";
-          else notionLang = "plain text";
-      }
-      childrenBlocks.push({
-          object: "block",
-          type: "code",
-          code: {
-              language: notionLang,
-              rich_text: [{ text: { content: data.CodeContent.substring(0, 2000) } }] 
-          }
-      });
-  }
-
   try {
       const response = await fetch(url, {
         method: "POST",
@@ -192,8 +196,7 @@ async function addEntryToNotionDatabase(data, notionApiKey, databaseId) {
             "Remarks": { rich_text: [{ text: { content: data.Remarks } }] },
             "My Solution Link": { url: data["Solution link"] },
             "Worth reviewing?": { checkbox: data["Worth reviewing?"] },
-          },
-          children: childrenBlocks 
+          }
         }),
       });
 

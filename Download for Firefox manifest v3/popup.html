@@ -88,14 +88,14 @@
     </div>
 
     <div id="review-view" class="hidden">
-      <div class="review-header-row">
-        <h3>Review Queue</h3>
-        <div class="toggle-container">
-          <input type="radio" id="scope-recent" name="review-toggle" checked>
-          <label for="scope-recent" title="Scan last 100 entries">Recent</label>
+      <div class="review-header-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0; color:var(--text-primary); font-size:14px;">Dashboard</h3>
+        <div class="toggle-container" style="display:flex; background:var(--input-bg); border:1px solid var(--border-color); border-radius:6px; padding:2px;">
+          <input type="radio" id="scope-recent" name="review-toggle" style="display:none;" checked>
+          <label for="scope-recent" class="toggle-label" title="Scan last 100 entries">Recent</label>
           
-          <input type="radio" id="scope-all" name="review-toggle">
-          <label for="scope-all" title="Scan entire database">All</label>
+          <input type="radio" id="scope-all" name="review-toggle" style="display:none;">
+          <label for="scope-all" class="toggle-label" title="Scan entire database">All</label>
         </div>
       </div>
       
@@ -106,6 +106,7 @@
 
     <div id="settings-view" class="hidden">
       <h3>Settings</h3>
+      
       <div class="card">
         <div class="card-header">
           <h4>Notion Connection</h4>
@@ -152,7 +153,6 @@
 
     <div id="setup-view" class="setup-overlay hidden">
       <div class="setup-container">
-        
         <div class="setup-progress">
           <div class="step-dot active" data-step="1"></div>
           <div class="step-line"></div>
@@ -162,33 +162,21 @@
         </div>
 
         <div id="step-1" class="setup-step active">
-          <h3>Welcome to LeetNotion!</h3>
-          <p>To start, duplicate our Notion template to your workspace.</p>
+          <h3>Welcome!</h3>
+          <p>Download our template to start.</p>
           <div class="setup-card">
             <label>1. Get Template</label>
-            <p class="small-text">Duplicating ensures database compatibility.</p>
-            <a href="https://oilybikechain.notion.site/LeetCode-Tracker-Template-1574d6f8510c8004944ec73167a54483" target="_blank" class="secondary-btn" style="text-align: center; display: block; text-decoration: none; margin-top:8px;">Open & Duplicate Template</a>
+            <a href="https://www.notion.so/Leetcode-Notion-Tracker-template-18fcc053f74480429974f527540d02b6" target="_blank" class="secondary-btn" style="text-align: center; display: block; text-decoration: none;">Open Template</a>
           </div>
         </div>
 
         <div id="step-2" class="setup-step">
-          <h3>Create Integration</h3>
-          <p>Go to <a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--accent-color);">notion.so/my-integrations</a> to get an API Key.</p>
+          <h3>API Key</h3>
+          <p>Create integration at <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a>.</p>
           <div class="setup-card">
-            <label>2. Configure Capabilities</label>
-            <p class="small-text" style="line-height: 1.5; margin-bottom: 8px;">
-              Create a new integration. Ensure these are checked:
-            </p>
-            <ul style="font-size: 11px; color: var(--text-secondary); margin-left: 15px; margin-bottom: 10px;">
-              <li>Read content</li>
-              <li>Update content</li>
-              <li>Insert content</li>
-              <li>No user information</li>
-            </ul>
-            <div class="divider"></div>
-            <label>Enter Integration Token</label>
+            <label>Enter Token</label>
             <div class="input-btn-group">
-                <input type="text" id="setup-api-key" placeholder="Paste your API key here...">
+                <input type="text" id="setup-api-key" placeholder="Paste API key...">
                 <button id="setup-save-key-btn" class="secondary-btn small-btn">Save</button>
             </div>
             <p id="setup-key-msg" class="msg-success-inline"></p>
@@ -196,21 +184,15 @@
         </div>
 
         <div id="step-3" class="setup-step">
-          <h3>Get Database ID</h3>
-          <p>Go to your new template. Click <b>...</b> > <b>Open as Full Page</b>.</p>
+          <h3>Database ID</h3>
+          <p>Copy 32-char ID from template URL.</p>
           <div class="setup-card">
-            <label>3. Copy ID from URL</label>
-            <p class="small-text" style="margin-bottom: 8px;">
-              The ID is the 32-character code in the URL (between <code>/</code> and <code>?</code>).
-            </p>
+            <label>Enter ID</label>
             <div class="input-btn-group">
                 <input type="text" id="setup-db-id" placeholder="e.g. 8b9f...">
                 <button id="setup-save-db-btn" class="secondary-btn small-btn">Save</button>
             </div>
             <p id="setup-db-msg" class="msg-success-inline"></p>
-            <p class="small-text" style="margin-top: 10px; color: var(--accent-color);">
-              ⚠️ Don't forget to connect your Integration to the database! (Three dots > Connect to)
-            </p>
           </div>
         </div>
 
@@ -219,13 +201,11 @@
           <div style="flex:1;"></div>
           <button id="setup-next-btn" class="primary-btn" style="width: auto;">Next</button>
         </div>
-        
         <p id="setup-error" class="status-message error"></p>
       </div>
     </div>
 
   </main>
-  
   <script src="popup.js"></script>
 </body>
 </html>

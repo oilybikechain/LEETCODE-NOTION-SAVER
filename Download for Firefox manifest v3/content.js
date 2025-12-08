@@ -244,7 +244,7 @@ async function createInPageModal() {
 
     <div class="group" style="margin-bottom: 12px;">
       <label>Remarks</label>
-      <textarea id="remarks" rows="1" placeholder="Edge cases, complexities, notes..."></textarea>
+      <textarea id="remarks" rows="1" placeholder="Edge cases, notes..."></textarea>
     </div>
 
     <div class="toggles">
