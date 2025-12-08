@@ -1,13 +1,8 @@
 const browser = globalThis.browser || globalThis.chrome;
 console.log("LeetNotion Content script loaded!");
 
-// Global variables
 let modalExists = false;
 let pollingInterval = null;
-
-// ============================================
-// 1. DATA SCRAPING
-// ============================================
 
 function getProblemSlug() {
   const match = window.location.pathname.match(/\/problems\/([^/]+)/);
@@ -23,7 +18,6 @@ function getCodeFromEditor() {
 function detectLanguage() {
   const buttons = document.querySelectorAll('button');
   const languages = ["C++", "Java", "Python", "Python3", "C", "C#", "JavaScript", "TypeScript", "Go", "Rust", "Swift", "Kotlin", "PHP", "SQL", "Ruby", "Dart", "Scala"];
-  
   for (let button of buttons) {
     const text = button.innerText.trim();
     if (languages.includes(text)) return text;
@@ -78,14 +72,17 @@ async function fetchSiteData() {
   }
 }
 
-// ============================================
-// 2. FULL UI IN-PAGE MODAL
-// ============================================
+// Helper to create elements with classes/attributes
+function createEl(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text) el.textContent = text;
+    return el;
+}
 
 async function createInPageModal() {
   if (modalExists) return;
 
-  // Check user setting
   const { autoDetect } = await browser.storage.local.get("autoDetect");
   if (autoDetect === false) return; 
 
@@ -97,22 +94,14 @@ async function createInPageModal() {
       return;
   }
 
-  // Create Modal Container
   const modalContainer = document.createElement("div");
   modalContainer.id = "leetnotion-modal-container";
-  
-  // Attach shadow DOM to protect styles
   const shadow = modalContainer.attachShadow({ mode: 'open' });
 
-  // ------------------------------------------
-  // INJECTED CSS
-  // ------------------------------------------
+  // CSS (Content is safe)
   const style = document.createElement('style');
-style.textContent = `
-    :host {
-      all: initial;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
+  style.textContent = `
+    :host { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     .modal-card {
       position: fixed; bottom: 20px; right: 20px; width: 340px;
       background-color: #1e1e1e; color: #e0e0e0;
@@ -124,7 +113,6 @@ style.textContent = `
     }
     @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     
-    /* Header */
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
     .title-group { max-width: 280px; }
     .title { font-weight: 800; font-size: 15px; color: #fff; margin-bottom: 4px; display: block; }
@@ -138,7 +126,6 @@ style.textContent = `
     .close-btn { background: none; border: none; color: #666; font-size: 18px; cursor: pointer; padding: 0; line-height: 1; }
     .close-btn:hover { color: #fff; }
 
-    /* Inputs */
     .row { display: flex; gap: 10px; margin-bottom: 12px; }
     .group { flex: 1; }
     label { display: block; font-size: 10px; font-weight: 700; color: #a0a0a0; margin-bottom: 4px; text-transform: uppercase; }
@@ -149,10 +136,8 @@ style.textContent = `
       color: #fff; font-size: 12px; outline: none;
       box-sizing: border-box; font-family: inherit;
     }
-    /* Updated Focus Color to Green */
     select:focus, textarea:focus { border-color: #66bb6a; }
 
-    /* Difficulty Dots */
     .dots { display: flex; gap: 8px; margin-top: 2px; }
     .dot {
       width: 24px; height: 24px; border-radius: 50%;
@@ -166,22 +151,18 @@ style.textContent = `
     .dot.medium.selected { background: #ff9800; }
     .dot.hard.selected { background: #f44336; }
 
-    /* Toggles - Updated Accent Color */
     .toggles { display: flex; gap: 15px; margin-bottom: 12px; }
     .check-wrap { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .check-wrap label { margin: 0; text-transform: none; color: #e0e0e0; font-size: 12px; font-weight: 400; cursor: pointer;}
     input[type="checkbox"] { accent-color: #66bb6a; cursor: pointer; }
 
-    /* Actions */
     .action-row { display: flex; gap: 8px; }
-    
     .save-btn {
       flex: 2; padding: 10px; border: none; border-radius: 6px;
-      background: #66bb6a; /* Green */
-      color: #1e1e1e; font-weight: 700; cursor: pointer;
+      background: #66bb6a; color: #1e1e1e; font-weight: 700; cursor: pointer;
       font-size: 13px; transition: background 0.2s;
     }
-    .save-btn:hover { background: #81c784; /* Lighter Green */ }
+    .save-btn:hover { background: #81c784; }
     .save-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
     .cancel-btn {
@@ -190,131 +171,147 @@ style.textContent = `
       font-size: 13px; transition: background 0.2s;
     }
     .cancel-btn:hover { background: #3d3d3d; }
-
     .status { text-align: center; margin-top: 8px; font-size: 11px; min-height: 15px; }
   `;
-  // ------------------------------------------
-  // MODAL HTML STRUCTURE
-  // ------------------------------------------
-  const card = document.createElement('div');
-  card.className = 'modal-card';
+
+  // --- BUILD DOM MANUALLY (No innerHTML) ---
+  const card = createEl('div', 'modal-card');
+
+  // HEADER
+  const header = createEl('div', 'header');
+  const titleGroup = createEl('div', 'title-group');
+  const title = createEl('span', 'title', `✅ ${problemData.Question}`);
   
-  // Prepare Tags HTML
-  const tagsHtml = problemData.tags.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('');
+  const badges = createEl('div', 'badges');
+  const diffBadge = createEl('span', `badge ${problemData.difficulty}`, problemData.difficulty);
+  badges.appendChild(diffBadge);
+  
+  // Tags
+  problemData.tags.slice(0, 3).forEach(t => {
+      badges.appendChild(createEl('span', 'tag', t));
+  });
 
-  card.innerHTML = `
-    <div class="header">
-      <div class="title-group">
-        <span class="title"> ${problemData.Question}</span>
-        <div class="badges">
-          <span class="badge ${problemData.difficulty}">${problemData.difficulty}</span>
-          ${tagsHtml}
-        </div>
-      </div>
-      <button class="close-btn" title="Close">×</button>
-    </div>
+  titleGroup.appendChild(title);
+  titleGroup.appendChild(badges);
+  header.appendChild(titleGroup);
 
-    <div class="row">
-      <div class="group">
-        <label>Language</label>
-        <select id="lang-select">
-          <option value="Python">Python</option>
-          <option value="Java">Java</option>
-          <option value="C++">C++</option>
-          <option value="JavaScript">JavaScript</option>
-          <option value="TypeScript">TypeScript</option>
-          <option value="Go">Go</option>
-          <option value="SQL">SQL</option>
-          <option value="Unknown">Other</option>
-        </select>
-      </div>
-      <div class="group">
-        <label>Perceived Difficulty</label>
-        <div class="dots">
-          <div class="dot easy" data-val="Easy">E</div>
-          <div class="dot medium" data-val="Medium">M</div>
-          <div class="dot hard" data-val="Hard">H</div>
-        </div>
-        <input type="hidden" id="selected-diff" value="${problemData.difficulty}">
-      </div>
-    </div>
+  const closeBtn = createEl('button', 'close-btn', '×');
+  closeBtn.title = "Close";
+  header.appendChild(closeBtn);
+  card.appendChild(header);
 
-    <div class="group" style="margin-bottom: 12px;">
-      <label>Alternative Approaches</label>
-      <textarea id="approach" rows="2" placeholder="Describe other methods (e.g. Brute Force vs DP)..."></textarea>
-    </div>
+  // ROW 1: Lang & Diff
+  const row1 = createEl('div', 'row');
+  
+  const groupLang = createEl('div', 'group');
+  groupLang.appendChild(createEl('label', '', 'LANGUAGE'));
+  const langSelect = document.createElement('select');
+  langSelect.id = 'lang-select';
+  ["Python", "Java", "C++", "JavaScript", "TypeScript", "Go", "SQL", "Unknown"].forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l; opt.textContent = l;
+      langSelect.appendChild(opt);
+  });
+  groupLang.appendChild(langSelect);
+  row1.appendChild(groupLang);
 
-    <div class="group" style="margin-bottom: 12px;">
-      <label>Remarks</label>
-      <textarea id="remarks" rows="1" placeholder="Edge cases, notes..."></textarea>
-    </div>
+  const groupDiff = createEl('div', 'group');
+  groupDiff.appendChild(createEl('label', '', 'PERCEIVED DIFFICULTY'));
+  const dotsContainer = createEl('div', 'dots');
+  const dotE = createEl('div', 'dot easy', 'E'); dotE.dataset.val = 'Easy';
+  const dotM = createEl('div', 'dot medium', 'M'); dotM.dataset.val = 'Medium';
+  const dotH = createEl('div', 'dot hard', 'H'); dotH.dataset.val = 'Hard';
+  dotsContainer.appendChild(dotE); dotsContainer.appendChild(dotM); dotsContainer.appendChild(dotH);
+  groupDiff.appendChild(dotsContainer);
+  const diffInput = document.createElement('input'); 
+  diffInput.type = 'hidden'; diffInput.id = 'selected-diff'; diffInput.value = problemData.difficulty;
+  groupDiff.appendChild(diffInput);
+  row1.appendChild(groupDiff);
+  card.appendChild(row1);
 
-    <div class="toggles">
-      <div class="check-wrap">
-        <input type="checkbox" id="solved" checked>
-        <label for="solved">Solved</label>
-      </div>
-      <div class="check-wrap">
-        <input type="checkbox" id="review">
-        <label for="review">Worth Reviewing</label>
-      </div>
-    </div>
+  // ROW 2: Approach
+  const groupApp = createEl('div', 'group');
+  groupApp.style.marginBottom = '12px';
+  groupApp.appendChild(createEl('label', '', 'ALTERNATIVE APPROACHES'));
+  const approachArea = document.createElement('textarea');
+  approachArea.id = 'approach'; approachArea.rows = 2; 
+  approachArea.placeholder = "Describe other methods...";
+  groupApp.appendChild(approachArea);
+  card.appendChild(groupApp);
 
-    <div class="action-row">
-      <button class="cancel-btn">Cancel</button>
-      <button class="save-btn">Save to Notion</button>
-    </div>
-    <div class="status"></div>
-  `;
+  // ROW 3: Remarks
+  const groupRem = createEl('div', 'group');
+  groupRem.style.marginBottom = '12px';
+  groupRem.appendChild(createEl('label', '', 'REMARKS'));
+  const remarkArea = document.createElement('textarea');
+  remarkArea.id = 'remarks'; remarkArea.rows = 1; 
+  remarkArea.placeholder = "Edge cases, notes...";
+  groupRem.appendChild(remarkArea);
+  card.appendChild(groupRem);
+
+  // ROW 4: Toggles
+  const toggles = createEl('div', 'toggles');
+  
+  const checkSolved = createEl('div', 'check-wrap');
+  const inputSolved = document.createElement('input'); 
+  inputSolved.type = 'checkbox'; inputSolved.id = 'solved'; inputSolved.checked = true;
+  const labelSolved = createEl('label', '', 'Solved'); labelSolved.htmlFor = 'solved';
+  checkSolved.appendChild(inputSolved); checkSolved.appendChild(labelSolved);
+  
+  const checkReview = createEl('div', 'check-wrap');
+  const inputReview = document.createElement('input'); 
+  inputReview.type = 'checkbox'; inputReview.id = 'review';
+  const labelReview = createEl('label', '', 'Worth Reviewing'); labelReview.htmlFor = 'review';
+  checkReview.appendChild(inputReview); checkReview.appendChild(labelReview);
+
+  toggles.appendChild(checkSolved); toggles.appendChild(checkReview);
+  card.appendChild(toggles);
+
+  // ACTIONS
+  const actions = createEl('div', 'action-row');
+  const cancelBtn = createEl('button', 'cancel-btn', 'Cancel');
+  const saveBtn = createEl('button', 'save-btn', 'Save to Notion');
+  actions.appendChild(cancelBtn); actions.appendChild(saveBtn);
+  card.appendChild(actions);
+
+  const statusDiv = createEl('div', 'status');
+  card.appendChild(statusDiv);
 
   shadow.appendChild(style);
   shadow.appendChild(card);
   document.body.appendChild(modalContainer);
 
-  // ------------------------------------------
-  // INTERACTIVITY & LOGIC
-  // ------------------------------------------
-
-  // 1. Pre-fill Language
-  const langSelect = shadow.getElementById('lang-select');
+  // --- LOGIC ---
   if (problemData.detectedLanguage) {
       let found = false;
       for (let opt of langSelect.options) {
           if (opt.value.toLowerCase() === problemData.detectedLanguage.toLowerCase()) {
-              langSelect.value = opt.value;
-              found = true;
-              break;
+              langSelect.value = opt.value; found = true; break;
           }
       }
       if (!found) {
           const opt = document.createElement('option');
           opt.value = problemData.detectedLanguage;
-          opt.text = problemData.detectedLanguage;
+          opt.textContent = problemData.detectedLanguage;
           langSelect.add(opt);
           langSelect.value = problemData.detectedLanguage;
       }
   }
 
-  // 2. Interactive Difficulty Dots
-  const dots = shadow.querySelectorAll('.dot');
-  const diffInput = shadow.getElementById('selected-diff');
-  
-  const initialDot = shadow.querySelector(`.dot.${problemData.difficulty.toLowerCase()}`);
-  if (initialDot) initialDot.classList.add('selected');
+  const dots = [dotE, dotM, dotH];
+  // Pre-select
+  const initialDot = dots.find(d => d.dataset.val === problemData.difficulty);
+  if(initialDot) initialDot.classList.add('selected');
 
   dots.forEach(dot => {
     dot.addEventListener('click', (e) => {
       e.preventDefault();
       dots.forEach(d => d.classList.remove('selected'));
       dot.classList.add('selected');
-      diffInput.value = dot.getAttribute('data-val');
+      diffInput.value = dot.dataset.val;
     });
   });
 
-  // 3. Close & Cancel Logic
-  const closeBtn = shadow.querySelector('.close-btn');
-  const cancelBtn = shadow.querySelector('.cancel-btn');
-  
   const closeModal = (e) => {
       if (e) e.preventDefault();
       modalContainer.remove(); 
@@ -324,23 +321,18 @@ style.textContent = `
   closeBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
 
-  // 4. Save Logic
-  const saveBtn = shadow.querySelector('.save-btn');
-  const statusDiv = shadow.querySelector('.status');
-
   saveBtn.addEventListener('click', async (e) => {
     e.preventDefault();
-    
     saveBtn.textContent = "Saving...";
     saveBtn.disabled = true;
 
     const payload = {
       difficulty: diffInput.value,
       language: langSelect.value,
-      alternativeMethods: shadow.getElementById('approach').value,
-      remarks: shadow.getElementById('remarks').value,
-      correct: shadow.getElementById('solved').checked,
-      worthReviewing: shadow.getElementById('review').checked,
+      alternativeMethods: approachArea.value || "None",
+      remarks: remarkArea.value || "None",
+      correct: inputSolved.checked,
+      worthReviewing: inputReview.checked,
       code: problemData.code
     };
 
@@ -362,38 +354,26 @@ style.textContent = `
   });
 }
 
-// ============================================
-// 3. ROBUST "ACCEPTED" DETECTION
-// ============================================
-
 function isSubmissionAccepted() {
   const statusHeaders = document.querySelectorAll('[data-e2e-locator="submission-result-accepted-header"], div, span');
-  
   for (let el of statusHeaders) {
       if (el.innerText.trim() === "Accepted") {
           if (el.offsetParent !== null) return true;
       }
   }
-
   const greenText = document.querySelector('.text-green-s, .text-green-500');
   if (greenText && greenText.innerText.includes("Accepted")) return true;
-
   return false;
 }
 
 function startResultWatcher() {
   if (pollingInterval) clearInterval(pollingInterval);
-  
   let attempts = 0;
   const maxAttempts = 20; 
   
-  console.log("LeetNotion: Watching for 'Accepted' status...");
-
   pollingInterval = setInterval(() => {
     attempts++;
-    
     if (isSubmissionAccepted()) {
-      console.log("LeetNotion: Accepted! Opening Modal.");
       clearInterval(pollingInterval);
       createInPageModal();
     } else if (attempts >= maxAttempts) {
@@ -405,20 +385,15 @@ function startResultWatcher() {
 document.addEventListener('click', (event) => {
   const target = event.target;
   const btn = target.closest('button');
-  
   if (btn) {
     const isSubmit = btn.getAttribute('data-e2e-locator') === 'console-submit-button' || 
                      btn.textContent.includes('Submit');
-    
     if (isSubmit) {
       setTimeout(startResultWatcher, 200);
     }
   }
 });
 
-// ============================================
-// 4. MANUAL LISTENER (Popup Click)
-// ============================================
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "manualFetch") {
     fetchSiteData().then(data => {

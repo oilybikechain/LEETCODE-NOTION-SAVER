@@ -35,7 +35,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const setupKeyMsg = document.getElementById("setup-key-msg");
   const setupDbMsg = document.getElementById("setup-db-msg");
 
-  // Inputs
   const languageSelect = document.getElementById("language-select");
   const selectedDifficulty = document.getElementById("selected-difficulty");
   const approachInput = document.getElementById("alternative-methods");
@@ -48,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const totalSteps = 3;
 
   // ===============================================
-  // 1. INITIALIZATION & LANGUAGE PRE-SELECT
+  // 1. INITIALIZATION
   // ===============================================
   
   const { theme, autoDetect, notionApiKey, notionDatabaseId, lastUsedLanguage } = await browser.storage.local.get([
@@ -60,7 +59,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (notionDatabaseId) dbIdInput.value = notionDatabaseId;
   document.getElementById("auto-detect").checked = (autoDetect !== false);
 
-  // Set Language: History > Default "Python"
   if (lastUsedLanguage) {
       languageSelect.value = lastUsedLanguage;
   } else {
@@ -78,7 +76,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ===============================================
 
   async function openSetupWizard() {
-      // PRE-FILL SETUP INPUTS
       const { notionApiKey, notionDatabaseId } = await browser.storage.local.get(["notionApiKey", "notionDatabaseId"]);
       if (notionApiKey) setupApiKey.value = notionApiKey;
       if (notionDatabaseId) setupDbId.value = notionDatabaseId;
@@ -115,19 +112,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   setupSaveKeyBtn.addEventListener("click", async () => {
       const key = setupApiKey.value.trim();
-      if(!key) { setupKeyMsg.textContent = "❌ Empty"; return; }
+      if(!key) { 
+          setupKeyMsg.textContent = "❌ Empty"; 
+          setupKeyMsg.style.color = "var(--danger-color)"; 
+          return; 
+      }
       await browser.storage.local.set({ notionApiKey: key });
       apiKeyInput.value = key;
-      setupKeyMsg.textContent = "✅ Saved!";
+      setupKeyMsg.textContent = "✅ Saved!"; 
+      setupKeyMsg.style.color = "var(--success-color)";
       setupApiKey.classList.add("valid");
   });
 
   setupSaveDbBtn.addEventListener("click", async () => {
       const db = setupDbId.value.trim();
-      if(!db) { setupDbMsg.textContent = "❌ Empty"; return; }
+      if(!db) { 
+          setupDbMsg.textContent = "❌ Empty"; 
+          setupDbMsg.style.color = "var(--danger-color)"; 
+          return; 
+      }
       await browser.storage.local.set({ notionDatabaseId: db });
-      dbIdInput.value = db;
-      setupDbMsg.textContent = "✅ Saved!";
+      dbIdInput.value = db; 
+      setupDbMsg.textContent = "✅ Saved!"; 
+      setupDbMsg.style.color = "var(--success-color)";
       setupDbId.classList.add("valid");
   });
 
@@ -142,34 +149,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       setupError.textContent = "";
       setupNextBtn.disabled = true;
 
-      // STEP 2: API KEY
       if (currentStep === 2) {
           const key = setupApiKey.value.trim();
-          if (!key) {
+          if (!key && !apiKeyInput.value) {
               setupError.textContent = "Please enter an API Key.";
               setupApiKey.classList.add("invalid");
               setupNextBtn.disabled = false;
               return;
           }
-          
-          // Auto-save logic if user proceeds without clicking save
-          if(!apiKeyInput.value || apiKeyInput.value !== key) {
+          if(key) {
              await browser.storage.local.set({ notionApiKey: key });
              apiKeyInput.value = key;
           }
-          
           setupApiKey.classList.remove("invalid");
           setupApiKey.classList.add("valid");
       }
 
-      // STEP 3: DATABASE ID
       if (currentStep === 3) {
           const dbId = setupDbId.value.trim();
-          // Use input or fallback to saved value
           const finalDbId = dbId || dbIdInput.value;
           const finalKey = setupApiKey.value.trim() || apiKeyInput.value.trim();
 
-          if (finalDbId.length < 20) {
+          if (!finalDbId || finalDbId.length < 20) {
               setupError.textContent = "Invalid ID format.";
               setupDbId.classList.add("invalid");
               setupNextBtn.disabled = false;
@@ -185,9 +186,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               if (response.status === "success") {
                   await browser.storage.local.set({ notionApiKey: finalKey, notionDatabaseId: finalDbId });
-                  apiKeyInput.value = finalKey;
-                  dbIdInput.value = finalDbId;
-                  
                   closeSetupWizard();
                   fetchData(); 
               } else {
@@ -269,7 +267,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       reviewView.classList.remove("hidden");
       
       const loadingText = scope === "all" ? "Scanning full database..." : "Scanning recent history...";
-      reviewListContainer.innerHTML = `<p class="small-text" style="text-align:center; margin-top:20px;">${loadingText}</p>`;
+      
+      // ✅ SAFE REPLACEMENT FOR innerHTML
+      reviewListContainer.textContent = ""; 
+      const p = document.createElement('p');
+      p.className = "small-text";
+      p.style.textAlign = "center";
+      p.style.marginTop = "20px";
+      p.textContent = loadingText;
+      reviewListContainer.appendChild(p);
 
       const response = await browser.runtime.sendMessage({ 
           action: "fetchReviewList",
@@ -279,22 +285,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       if(response.status === "success") {
           renderDashboard(response.data);
       } else {
-          reviewListContainer.innerHTML = `<p class="status-message error">${response.error}</p>`;
+          reviewListContainer.textContent = "";
+          const errP = document.createElement('p');
+          errP.className = "status-message error";
+          errP.textContent = response.error;
+          reviewListContainer.appendChild(errP);
       }
   }
 
   function renderDashboard(data) {
-      reviewListContainer.innerHTML = "";
+      reviewListContainer.textContent = ""; // Clear safe
       
       if (!data || (!data.unsolved && !data.review)) {
-          reviewListContainer.innerHTML = '<p class="status-message error">Invalid data structure</p>';
+          const p = document.createElement('p');
+          p.className = "status-message error";
+          p.textContent = "Invalid data structure";
+          reviewListContainer.appendChild(p);
           return;
       }
 
       if (data.unsolved.length > 0) {
           const h = document.createElement("div");
           h.className = "section-header";
-          h.innerText = `📝 Unsolved Problems (${data.unsolved.length})`;
+          h.textContent = `📝 Unsolved Problems (${data.unsolved.length})`;
           reviewListContainer.appendChild(h);
           data.unsolved.forEach(item => reviewListContainer.appendChild(createItemEl(item)));
       }
@@ -302,13 +315,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (data.review.length > 0) {
           const h = document.createElement("div");
           h.className = "section-header";
-          h.innerText = `🔄 Review Queue (${data.review.length})`;
+          h.textContent = `🔄 Review Queue (${data.review.length})`;
           reviewListContainer.appendChild(h);
           data.review.forEach(item => reviewListContainer.appendChild(createItemEl(item)));
       }
 
       if (data.unsolved.length === 0 && data.review.length === 0) {
-          reviewListContainer.innerHTML = '<p class="empty-review">🎉 No problems found!</p>';
+          const p = document.createElement('p');
+          p.className = "empty-review";
+          p.textContent = "🎉 No problems found!";
+          reviewListContainer.appendChild(p);
       }
   }
 
@@ -317,13 +333,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       el.className = "review-item";
       el.href = item.url;
       el.target = "_blank";
-      el.innerHTML = `
-        <div class="review-info">
-          <div class="review-title" title="${item.title}">${item.title}</div>
-          <div class="review-date">Last Practiced: ${new Date(item.lastPracticed).toLocaleDateString()}</div>
-        </div>
-        <div class="review-badge ${item.difficulty}">${item.difficulty}</div>
-      `;
+
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'review-info';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'review-title';
+      titleDiv.title = item.title;
+      titleDiv.textContent = item.title;
+
+      const dateDiv = document.createElement('div');
+      dateDiv.className = 'review-date';
+      dateDiv.textContent = `Last Practiced: ${new Date(item.lastPracticed).toLocaleDateString()}`;
+
+      infoDiv.appendChild(titleDiv);
+      infoDiv.appendChild(dateDiv);
+
+      const badgeDiv = document.createElement('div');
+      badgeDiv.className = `review-badge ${item.difficulty}`;
+      badgeDiv.textContent = item.difficulty;
+
+      el.appendChild(infoDiv);
+      el.appendChild(badgeDiv);
+
       return el;
   }
 
@@ -337,9 +369,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("display-difficulty").textContent = data.difficulty;
         document.getElementById("display-difficulty").className = `badge ${data.difficulty}`;
         const tagsContainer = document.getElementById("display-tags");
-        tagsContainer.innerHTML = "";
+        tagsContainer.textContent = ""; // Safe clear
         data.tags.slice(0,4).forEach(t => {
-            const s = document.createElement("span"); s.className = "tag-chip"; s.textContent = t;
+            const s = document.createElement("span"); 
+            s.className = "tag-chip"; 
+            s.textContent = t;
             tagsContainer.appendChild(s);
         });
         
