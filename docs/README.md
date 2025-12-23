@@ -32,6 +32,12 @@ Whether you're tracking daily streaks, managing a review queue for spaced repeti
 
 ## 🚀 Installation & Setup
 
+## Download from the chrome/firefox store
+**We're now on the official chrome/firefox store!**
+* Chrome Store link: https://chromewebstore.google.com/detail/leetnotion-sync/dkajphhnkmfogoedigdobmcgfbncffpl
+* Firefox Store link: https://addons.mozilla.org/en-US/firefox/addon/leetnotion-sync/
+
+## Manual Install
 ### Step 1: Install the Extension
 1.  **Download the Source Code:**
     * **Chrome:** Download the `download for chrome` folder.
